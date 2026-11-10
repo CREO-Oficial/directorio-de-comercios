@@ -3,716 +3,927 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CREO | Directorio Oficial Soacha Compartir</title>
+  <title>CREO | Directorio Oficial Soacha Compartir (@redcreoco)</title>
+  <meta name="description" content="Directorio Comercial Digital de Soacha Compartir. Conecta directo por WhatsApp con 0% comisiones. Yo CREO en mi barrio." />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- Leaflet CSS para Mapa del Barrio con Pines Personalizados de CREO -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script id="schemaLocalBusiness" type="application/ld+json">{}</script>
   <style>
     :root {
+      --bg-base: #08080a;
+      --bg-card: rgba(16, 16, 22, 0.88);
       --indigo: #6366f1;
-      --indigo-dark: #4f46e5;
+      --indigo-glow: rgba(99, 102, 241, 0.55);
       --mint: #4ecca3;
-      --mint-hover: #3db890;
-      --charcoal: #1e1e24;
-      --bg-dark: #121214;
-      --card-bg: #1a1a1e;
-      --card-border: #2e2e36;
-      --text-white: #FFFFFF;
-      --text-muted: #9ca3af;
+      --mint-glow: rgba(78, 204, 163, 0.45);
+      --gold-glow: 0 0 12px rgba(255, 223, 0, 0.85), 0 0 30px rgba(255, 215, 0, 0.65), inset 0 0 10px rgba(255, 255, 255, 0.85);
+      --silver-glow: 0 0 12px rgba(241, 245, 249, 0.85), 0 0 30px rgba(148, 163, 184, 0.65), inset 0 0 10px rgba(255, 255, 255, 0.85);
+      --border-glass: rgba(255, 255, 255, 0.1);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Plus Jakarta Sans', sans-serif;
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: antialiased; }
+    body { background-color: var(--bg-base); color: var(--text-main); line-height: 1.5; padding-bottom: 60px; overflow-x: hidden; }
+
+    body::before {
+      content: ""; position: fixed; top: -150px; left: 50%; transform: translateX(-50%); width: 1000px; height: 600px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(78, 204, 163, 0.08) 45%, rgba(8, 8, 10, 0) 70%);
+      z-index: -1; pointer-events: none;
     }
 
-    body {
-      background-color: var(--bg-dark);
-      color: var(--text-white);
-      line-height: 1.6;
-      padding-bottom: 80px;
+    /* BARRA PUBLICITARIA SUPERIOR: "YO CREO EN TU NEGOCIO" */
+    .top-promo-strip {
+      background: linear-gradient(90deg, #16162a 0%, #1e1b4b 50%, #0f2922 100%);
+      border-bottom: 1px solid rgba(78, 204, 163, 0.35);
+      padding: 9px 16px; text-align: center; font-size: 0.78rem;
+      display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px;
     }
+    .top-promo-strip strong.highlight { color: var(--mint); font-weight: 900; letter-spacing: 0.3px; }
+    .top-promo-actions { display: inline-flex; gap: 8px; flex-wrap: wrap; }
+    .pill-cta-join {
+      background: var(--mint); color: #052e16; font-weight: 800; font-size: 0.72rem;
+      padding: 4px 12px; border-radius: 999px; text-decoration: none; transition: transform 0.2s;
+    }
+    .pill-cta-join:hover { transform: scale(1.05); }
+    .pill-cta-login {
+      background: rgba(99, 102, 241, 0.25); color: #fff; border: 1px solid var(--indigo);
+      font-weight: 800; font-size: 0.72rem; padding: 4px 12px; border-radius: 999px; cursor: pointer;
+    }
+    .pill-cta-login:hover { background: var(--indigo); }
 
     header {
-      background: linear-gradient(135deg, #18181c 0%, #1f2033 100%);
-      border-bottom: 2px solid var(--indigo);
-      padding: 32px 20px 24px;
-      text-align: center;
-      position: relative;
+      background: rgba(12, 12, 16, 0.85); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-glass);
+      padding: 28px 20px 24px; text-align: center; position: relative; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+    }
+    header::after {
+      content: ""; position: absolute; bottom: -1px; left: 15%; width: 70%; height: 1px;
+      background: linear-gradient(90deg, transparent 0%, var(--indigo) 35%, var(--mint) 65%, transparent 100%);
+      opacity: 0.85; box-shadow: 0 0 12px var(--mint);
     }
 
     .badge-nodo {
-      display: inline-block;
-      background: rgba(78, 204, 163, 0.12);
-      color: var(--mint);
-      border: 1px solid rgba(78, 204, 163, 0.3);
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1.2px;
-      padding: 6px 14px;
-      border-radius: 99px;
-      margin-bottom: 16px;
+      display: inline-flex; align-items: center; gap: 7px; background: rgba(78, 204, 163, 0.08); color: var(--mint);
+      border: 1px solid rgba(78, 204, 163, 0.3); font-size: 0.72rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 1.5px; padding: 6px 16px; border-radius: 999px; margin-bottom: 14px;
     }
+    .badge-nodo span.dot { width: 6px; height: 6px; background-color: var(--mint); border-radius: 50%; box-shadow: 0 0 8px var(--mint); }
 
-    .logo-container {
-      max-width: 300px;
-      margin: 0 auto 12px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
+    .logo-container { max-width: 280px; margin: 0 auto 10px; display: flex; justify-content: center; align-items: center; }
+    .logo-container svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 4px 20px rgba(99, 102, 241, 0.25)); }
 
-    .logo-container svg {
-      width: 100%;
-      height: auto;
-      display: block;
-      filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.4));
-    }
+    .claim-barrio { font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin-bottom: 6px; }
+    .claim-barrio span.indigo { color: var(--indigo); text-shadow: 0 0 12px var(--indigo-glow); }
+    .claim-barrio span.mint { color: var(--mint); text-shadow: 0 0 12px var(--mint-glow); }
+    .subtitle { color: var(--text-muted); font-size: 0.9rem; max-width: 540px; margin: 0 auto 18px; }
 
-    .claim-barrio {
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: var(--text-white);
-      margin-bottom: 8px;
-    }
-
-    .claim-barrio span.indigo { color: var(--indigo); font-weight: 800; }
-    .claim-barrio span.mint { color: var(--mint); font-weight: 800; }
-
-    .subtitle {
-      color: var(--text-muted);
-      font-size: 0.92rem;
-      max-width: 520px;
-      margin: 0 auto 18px;
-    }
-
-    .creo-socials-bar {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-
+    /* BOTONES DE REDES SOCIALES @redcreoco CON COLORES E ÍCONOS OFICIALES */
+    .creo-socials-bar { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
     .creo-social-btn {
-      background: rgba(99, 102, 241, 0.15);
-      border: 1px solid rgba(99, 102, 241, 0.4);
-      color: var(--text-white);
-      padding: 6px 16px;
-      border-radius: 99px;
-      font-size: 0.78rem;
-      font-weight: 700;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.2s;
+      padding: 8px 16px; border-radius: 999px; font-size: 0.78rem; font-weight: 800; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 8px; transition: all 0.25s; color: #ffffff; cursor: pointer;
+    }
+    .creo-social-btn svg { width: 15px; height: 15px; fill: currentColor; flex-shrink: 0; }
+    .creo-social-btn:hover { transform: translateY(-2px) scale(1.03); }
+
+    .btn-brand-ig {
+      background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+      box-shadow: 0 4px 15px rgba(220, 39, 67, 0.4); border: 1px solid rgba(255,255,255,0.25);
+    }
+    .btn-brand-fb {
+      background: #1877F2; box-shadow: 0 4px 15px rgba(24, 119, 242, 0.45); border: 1px solid rgba(255,255,255,0.25);
+    }
+    .btn-brand-tk {
+      background: #0f0f14; border: 1.5px solid #00f2fe;
+      box-shadow: -2px 0 10px rgba(0, 242, 254, 0.45), 2px 0 10px rgba(255, 0, 80, 0.45);
+    }
+    .btn-brand-vitrina {
+      background: linear-gradient(135deg, var(--mint) 0%, #10b981 100%); color: #052e16;
+      box-shadow: 0 4px 16px var(--mint-glow); border: none;
     }
 
-    .creo-social-btn:hover { background: var(--indigo); border-color: var(--indigo); }
+    .controls-container { max-width: 1350px; margin: 22px auto 18px; padding: 0 20px; position: relative; z-index: 10; }
 
-    .controls-container {
-      max-width: 1350px;
-      margin: 24px auto;
-      padding: 0 20px;
-      position: relative;
-      z-index: 10;
-    }
-
-    /* ========== CARRUSEL DE BANNERS BLINDADO ========== */
+    /* CARRUSEL DE BANNERS 100% ADAPTABLE A MÓVILES SIN CORTARSE */
     .banner-carousel-wrapper {
-      width: 100%;
-      aspect-ratio: 9 / 2;
-      min-height: 130px;
-      max-height: 260px;
-      border-radius: 16px;
-      overflow: hidden;
-      margin-bottom: 20px;
-      border: 1px solid var(--card-border);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-      background: linear-gradient(135deg, #18181c 0%, #232438 100%);
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      width: 100%; border-radius: 20px; overflow: hidden; margin-bottom: 22px;
+      border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65);
+      background: radial-gradient(circle at 50% 50%, #171724 0%, #09090d 100%);
+      position: relative; display: flex; align-items: center; justify-content: center;
+      aspect-ratio: 18 / 5;
     }
-
+    @media (max-width: 640px) {
+      .banner-carousel-wrapper { aspect-ratio: auto; min-height: 95px; border-radius: 14px; }
+    }
     .banner-carousel-wrapper img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: none;
-      transition: opacity 0.35s ease-in-out;
+      width: 100%; height: auto; max-height: 300px; object-fit: contain; display: none; transition: opacity 0.4s ease-in-out;
     }
-
-    .banner-loader {
-      color: var(--text-muted);
-      font-size: 0.88rem;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-    }
+    .banner-loader { color: var(--text-dim); font-size: 0.84rem; font-weight: 600; text-transform: uppercase; padding: 32px 12px; }
 
     .banner-nav-btn {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      background: rgba(18, 18, 20, 0.7);
-      color: var(--text-white);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      cursor: pointer;
-      font-size: 1.2rem;
-      font-weight: bold;
-      z-index: 6;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s;
+      position: absolute; top: 50%; transform: translateY(-50%); background: rgba(10, 10, 13, 0.72); backdrop-filter: blur(8px);
+      color: var(--text-main); border: 1px solid var(--border-glass); width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
+      font-size: 1.2rem; z-index: 6; display: none; align-items: center; justify-content: center;
     }
-
-    .banner-nav-btn:hover { background: var(--indigo); border-color: var(--indigo); }
-    .banner-nav-prev { left: 12px; }
-    .banner-nav-next { right: 12px; }
+    .banner-nav-btn:hover { background: var(--indigo); }
+    .banner-nav-prev { left: 10px; }
+    .banner-nav-next { right: 10px; }
 
     .banner-dots {
-      position: absolute;
-      bottom: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: none;
-      gap: 8px;
-      z-index: 6;
-      background: rgba(18, 18, 20, 0.7);
-      padding: 5px 12px;
-      border-radius: 99px;
-      backdrop-filter: blur(4px);
+      position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); display: none; gap: 7px; z-index: 6;
+      background: rgba(10, 10, 13, 0.75); padding: 5px 12px; border-radius: 999px; border: 1px solid var(--border-glass);
     }
+    .banner-dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255, 255, 255, 0.3); cursor: pointer; }
+    .banner-dot.active { background: var(--mint); box-shadow: 0 0 8px var(--mint); transform: scale(1.3); }
 
-    .banner-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.35);
-      cursor: pointer;
-      transition: all 0.2s;
+    /* FILA DE CONTROLES: BUSCADOR + DESPLEGABLE DE CATEGORÍAS + BOTÓN MAPA DEL BARRIO */
+    .controls-grid {
+      display: grid; grid-template-columns: 1.5fr 1fr auto; gap: 12px; align-items: stretch;
     }
+    @media (max-width: 900px) { .controls-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 600px) { .controls-grid { grid-template-columns: 1fr; } }
 
-    .banner-dot.active {
-      background: var(--mint);
-      transform: scale(1.25);
-    }
-
+    .search-wrapper { position: relative; }
+    .search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--mint); pointer-events: none; }
     .search-box {
-      width: 100%;
-      padding: 16px 20px;
-      border-radius: 14px;
-      border: 1px solid var(--card-border);
-      background-color: var(--card-bg);
-      color: var(--text-white);
-      font-size: 0.95rem;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-      outline: none;
-      transition: all 0.2s;
+      width: 100%; height: 100%; min-height: 54px; padding: 14px 18px 14px 50px; border-radius: 16px; border: 1px solid var(--border-glass);
+      background: rgba(18, 18, 24, 0.75); color: var(--text-main); font-size: 0.92rem; outline: none; transition: all 0.25s;
     }
-
     .search-box:focus { border-color: var(--mint); box-shadow: 0 0 0 3px rgba(78, 204, 163, 0.15); }
 
-    .categories-bar {
-      display: flex;
-      overflow-x: auto;
-      gap: 10px;
-      padding: 16px 4px 8px 4px;
-      white-space: nowrap;
-      scrollbar-width: thin;
+    /* LISTADO DESPLEGABLE DE CATEGORÍAS */
+    .category-select-wrapper { position: relative; }
+    .category-select {
+      width: 100%; height: 100%; min-height: 54px; padding: 14px 40px 14px 18px; border-radius: 16px;
+      border: 1px solid rgba(99, 102, 241, 0.45); background: rgba(18, 18, 28, 0.9);
+      color: var(--text-main); font-size: 0.9rem; font-weight: 700; outline: none; cursor: pointer;
+      appearance: none; -webkit-appearance: none; transition: all 0.25s;
+    }
+    .category-select:focus { border-color: var(--mint); box-shadow: 0 0 0 3px rgba(78, 204, 163, 0.15); }
+    .category-select option { background: #12121a; color: #fff; font-weight: 600; padding: 10px; }
+    .select-arrow {
+      position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+      color: var(--mint); pointer-events: none; font-size: 0.85rem; font-weight: 900;
     }
 
-    .categories-bar::-webkit-scrollbar { height: 5px; }
-    .categories-bar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
-
-    .cat-btn {
-      background: var(--card-bg);
-      color: var(--text-muted);
-      border: 1px solid var(--card-border);
-      padding: 10px 18px;
-      border-radius: 99px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
+    /* BOTÓN "MAPA DEL BARRIO" EN AZUL CREO CON PIN 3D FLOTANDO ANIMADO */
+    .btn-mapa-barrio {
+      min-height: 54px; padding: 10px 22px; border-radius: 16px;
+      background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
+      border: 1px solid rgba(255, 255, 255, 0.28); color: #ffffff;
+      font-weight: 800; font-size: 0.88rem; cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+      box-shadow: 0 6px 24px var(--indigo-glow); transition: all 0.25s; position: relative;
+    }
+    .btn-mapa-barrio:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(99, 102, 241, 0.75); }
+    .pin-floating-icon {
+      width: 30px; height: 30px; object-fit: contain;
+      filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.65));
+      animation: pinFloatAnim 2.2s ease-in-out infinite;
+    }
+    @keyframes pinFloatAnim {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-6px) rotate(3deg); }
     }
 
-    .cat-btn.active, .cat-btn:hover {
-      background: var(--indigo);
-      color: var(--text-white);
-      border-color: var(--indigo);
-      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    /* PANEL DEL MAPA DEL BARRIO CON PINES PERSONALIZADOS DE CREO */
+    .map-interactive-panel {
+      display: none; background: var(--bg-card); border: 2px solid var(--indigo);
+      border-radius: 22px; padding: 18px; margin-top: 18px; box-shadow: 0 16px 40px rgba(0,0,0,0.75);
     }
-
-    .grid-container {
-      max-width: 1350px;
-      margin: 0 auto;
-      padding: 0 20px;
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 24px;
+    .map-interactive-panel.open { display: block; }
+    .map-grid { display: grid; grid-template-columns: 2.2fr 1fr; gap: 16px; margin-top: 12px; }
+    @media (max-width: 820px) { .map-grid { grid-template-columns: 1fr; } }
+    #leafletMapBarrio { width: 100%; height: 380px; border-radius: 16px; border: 1px solid var(--border-glass); z-index: 2; }
+    .map-list-box { max-height: 380px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px; }
+    .map-item-btn {
+      background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 12px;
+      padding: 10px 12px; text-align: left; color: var(--text-main); cursor: pointer; transition: all 0.2s;
     }
+    .map-item-btn:hover { border-color: var(--mint); background: rgba(78, 204, 163, 0.1); }
+    .creo-custom-marker { animation: pinFloatAnim 2.4s ease-in-out infinite; }
 
-    @media (max-width: 1100px) { .grid-container { grid-template-columns: repeat(3, 1fr); } }
-    @media (max-width: 800px) { .grid-container { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 500px) { .grid-container { grid-template-columns: 1fr; } }
+    /* GRILLA Y TARJETAS DE VITRINAS DIGITALES */
+    .grid-container { max-width: 1350px; margin: 14px auto 0; padding: 0 20px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 26px; }
+    @media (max-width: 1150px) { .grid-container { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 820px) { .grid-container { grid-template-columns: repeat(2, 1fr); gap: 18px; } }
+    @media (max-width: 520px) { .grid-container { grid-template-columns: 1fr; } }
 
-    /* ========== ECOSISTEMA DE 4 PLANES CREO ========== */
     .card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 20px;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-      transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
-      position: relative;
+      background: var(--bg-card); backdrop-filter: blur(16px); border-radius: 22px; overflow: hidden;
+      display: flex; flex-direction: column; box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); position: relative;
     }
-    .card:hover { transform: translateY(-5px); box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4); }
+    .card:hover { transform: translateY(-6px); box-shadow: 0 20px 45px rgba(0, 0, 0, 0.7); }
 
-    .badge-plan {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      padding: 5px 12px;
-      border-radius: 8px;
-      font-size: 0.72rem;
-      font-weight: 800;
-      z-index: 10;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+    .plan-title-premium {
+      position: absolute; top: 12px; left: 16px; font-size: 0.7rem; font-weight: 900;
+      letter-spacing: 1.1px; text-transform: uppercase; z-index: 10;
+    }
+    .btn-share-vitrina {
+      position: absolute; top: 8px; right: 12px; z-index: 10;
+      background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.45);
+      color: #fff; font-size: 0.66rem; font-weight: 800; padding: 3px 9px; border-radius: 999px;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-share-vitrina:hover { background: var(--indigo); }
+
+    /* PLANES */
+    .plan-Gris { border: 1px solid rgba(255, 255, 255, 0.05); opacity: 0.75; }
+    .plan-Gris .card-img { filter: grayscale(100%); opacity: 0.4; }
+    .plan-Gris .plan-title-premium { color: var(--text-dim); }
+    .plan-Gris .btn-wa, .plan-Gris .btn-maps, .plan-Gris .social-icon, .plan-Gris .btn-web-pro-custom {
+      pointer-events: none !important; opacity: 0.25 !important; background: #1e1e24 !important; color: #64748b !important;
     }
 
-    /* 1. PLAN CREO COMUNIDAD (NIVEL GRIS - INACTIVO) */
-    .plan-Gris .card-img { filter: grayscale(100%); opacity: 0.55; }
-    .plan-Gris { border-color: #2b2b30; }
-    .plan-Gris .btn-wa, .plan-Gris .btn-maps, .plan-Gris .social-icon, .plan-Gris .btn-web-pro { 
-      pointer-events: none; 
-      opacity: 0.28; 
-      background-color: #2b2b30 !important; 
-      color: #777 !important;
-      border-color: #3a3a40 !important;
-      filter: grayscale(100%);
-      box-shadow: none !important;
+    .plan-Cobre {
+      border: 3px solid #f97316;
+      box-shadow: 0 0 15px rgba(249, 115, 22, 0.6), 0 0 30px rgba(217, 119, 54, 0.4), inset 0 0 12px rgba(255, 150, 50, 0.5);
     }
-    .badge-Gris { background: rgba(18, 18, 20, 0.88); color: #9ca3af; border: 1px solid #4b5563; }
-
-    /* 2. PLAN CREO CONECTA (NIVEL COBRE - SOLO WHATSAPP ACTIVO) */
-    .plan-Cobre { border: 2px solid #B87333; }
-    .plan-Cobre .btn-maps, .plan-Cobre .social-icon, .plan-Cobre .btn-web-pro { 
-      pointer-events: none; 
-      opacity: 0.28; 
-      filter: grayscale(100%);
-      box-shadow: none !important;
+    .plan-Cobre .plan-title-premium {
+      background: linear-gradient(135deg, #ffedd5 0%, #f97316 50%, #c2410c 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     }
-    .badge-Cobre { background: #B87333; color: #FFFFFF; box-shadow: 0 2px 10px rgba(184, 115, 51, 0.45); }
-
-    /* 3. PLAN CREO IMPULSO (NIVEL SILVER - TODOS LOS ENLACES ACTIVOS) */
-    .plan-Silver { border: 2px solid #C0C0C0; box-shadow: 0 8px 25px rgba(192, 192, 192, 0.12); }
-    .badge-Silver { background: linear-gradient(135deg, #e5e7eb 0%, #9ca3af 100%); color: #121214; box-shadow: 0 2px 12px rgba(192, 192, 192, 0.45); }
-
-    /* 4. PLAN CREO LEYENDA VIP (NIVEL DORADO - BORDE ILUMINADO Y POSICION #1) */
-    .plan-Dorado { 
-      border: 2px solid #FFD700; 
-      box-shadow: 0 0 24px rgba(255, 215, 0, 0.28); 
+    .plan-Cobre .btn-maps, .plan-Cobre .social-icon, .plan-Cobre .btn-web-pro-custom {
+      pointer-events: none !important; opacity: 0.25 !important; filter: grayscale(100%); box-shadow: none !important;
     }
-    .badge-Dorado { background: linear-gradient(135deg, #FFD700 0%, #F59E0B 100%); color: #121214; box-shadow: 0 4px 15px rgba(255, 215, 0, 0.55); }
+
+    .plan-Silver {
+      border: 3.5px solid #ffffff; box-shadow: var(--silver-glow);
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.85) 0%, rgba(15, 23, 42, 0.95) 100%);
+    }
+    .plan-Silver .plan-title-premium {
+      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 50%, #94a3b8 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+
+    .plan-Dorado {
+      border: 4px solid #ffd700; box-shadow: var(--gold-glow);
+      background: linear-gradient(135deg, rgba(41, 37, 36, 0.9) 0%, rgba(24, 24, 27, 0.95) 100%);
+    }
+    .plan-Dorado .plan-title-premium {
+      background: linear-gradient(135deg, #fffbeb 0%, #fde047 40%, #eab308 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
 
     .card-img-wrapper {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 1 / 1;
-      background-color: #121214;
-      overflow: hidden;
-      border-bottom: 1px solid var(--card-border);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      position: relative; width: 100%; aspect-ratio: 1 / 1; background: #0b0b0e; overflow: hidden;
+      border-bottom: 1px solid var(--border-glass); display: flex; align-items: center; justify-content: center; margin-top: 34px;
     }
-
-    .card-img { width: 100%; height: 100%; object-fit: contain; }
+    .card-img { width: 100%; height: 100%; object-fit: contain; transition: transform 0.4s; cursor: pointer; }
+    .card:hover .card-img { transform: scale(1.04); }
 
     .card-socials {
-      position: absolute;
-      bottom: 12px;
-      right: 12px;
-      display: flex;
-      gap: 6px;
-      z-index: 5;
-      background: rgba(18, 18, 20, 0.78);
-      backdrop-filter: blur(8px);
-      padding: 5px;
-      border-radius: 99px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      position: absolute; bottom: 10px; right: 10px; display: flex; gap: 6px; z-index: 5;
+      background: rgba(10, 10, 14, 0.82); backdrop-filter: blur(10px); padding: 4px 7px; border-radius: 99px; border: 1px solid var(--border-glass);
     }
-
     .social-icon {
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--text-white);
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-decoration: none;
-      transition: all 0.2s;
+      background: rgba(255, 255, 255, 0.06); color: var(--text-main); width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; text-decoration: none; transition: all 0.2s;
     }
-
-    .social-icon svg { width: 15px; height: 15px; fill: currentColor; }
+    .social-icon svg { width: 13px; height: 13px; fill: currentColor; }
     .social-icon:hover { background: var(--indigo); transform: scale(1.1); }
 
-    .card-body {
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      flex-grow: 1;
+    .card-body { padding: 15px 18px 18px; display: flex; flex-direction: column; flex-grow: 1; }
+    .card-top-meta { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 5px; }
+    .card-category-badge { font-size: 0.68rem; font-weight: 800; color: var(--mint); text-transform: uppercase; letter-spacing: 1px; }
+    .rating-bar { display: inline-flex; align-items: center; gap: 5px; font-size: 0.74rem; font-weight: 800; color: #fbbf24; }
+    .btn-rate-mini {
+      background: rgba(251, 191, 36, 0.12); border: 1px solid rgba(251, 191, 36, 0.35); color: #fde047;
+      font-size: 0.66rem; font-weight: 800; padding: 2px 8px; border-radius: 999px; cursor: pointer;
     }
 
-    .card-category-badge {
-      font-size: 0.72rem;
-      font-weight: 700;
-      color: var(--mint);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 6px;
+    .card-title { font-size: 1.15rem; font-weight: 800; margin-bottom: 4px; color: var(--text-main); cursor: pointer; }
+    .card-title:hover { color: var(--mint); }
+    .card-desc-seo { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px; }
+    .card-info { font-size: 0.79rem; color: var(--text-muted); margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+    .card-info svg { width: 13px; height: 13px; fill: var(--text-dim); flex-shrink: 0; }
+
+    /* SELECTOR DE SEDES DENTRO DE LA MISMA VITRINA */
+    .sedes-box {
+      margin: 6px 0 8px; padding: 7px 10px; border-radius: 10px;
+      background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); font-size: 0.73rem;
+    }
+    .sedes-select {
+      width: 100%; background: #0b0b12; color: #fff; border: 1px solid var(--border-glass);
+      border-radius: 8px; padding: 5px 8px; font-size: 0.73rem; font-weight: 700; margin-top: 4px; outline: none;
     }
 
-    .card-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 8px; color: var(--text-white); letter-spacing: -0.3px; }
-    .card-info { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
-
-    .btn-web-pro {
-      margin-top: 8px;
-      padding: 8px 12px;
-      border-radius: 10px;
-      background: rgba(99, 102, 241, 0.14);
-      border: 1px solid rgba(99, 102, 241, 0.4);
-      color: var(--text-white);
-      text-decoration: none;
-      font-size: 0.78rem;
-      font-weight: 700;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      transition: all 0.2s;
+    .btn-web-pro-custom {
+      margin-top: 8px; width: 100%; padding: 9px 14px; border-radius: 12px;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.85) 0%, rgba(79, 70, 229, 0.9) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.2); color: #ffffff; text-decoration: none;
+      font-size: 0.76rem; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; gap: 7px;
     }
-
-    .btn-web-pro:hover {
-      background: var(--indigo);
-      border-color: var(--indigo);
-    }
+    .btn-web-pro-custom svg { width: 14px; height: 14px; fill: currentColor; }
 
     .card-actions {
-      margin-top: auto;
-      padding-top: 14px;
-      display: grid;
-      grid-template-columns: 1.3fr 1fr;
-      gap: 8px;
-      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      margin-top: auto; padding-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; border-top: 1px solid var(--border-glass);
     }
-
     .btn {
-      text-decoration: none;
-      text-align: center;
-      padding: 10px 12px;
-      border-radius: 12px;
-      font-weight: 700;
-      font-size: 0.82rem;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      transition: all 0.2s;
+      text-decoration: none; text-align: center; padding: 9px 10px; border-radius: 10px;
+      font-weight: 700; font-size: 0.78rem; display: inline-flex; align-items: center; justify-content: center; gap: 5px; border: none; cursor: pointer;
     }
+    .btn svg { width: 13px; height: 13px; fill: currentColor; flex-shrink: 0; }
+    .btn-wa { background: #22c55e; color: #052e16; font-weight: 800; }
+    .btn-maps { background: var(--mint); color: #052e16; font-weight: 800; }
 
-    .btn-wa { background-color: var(--mint); color: #111827; box-shadow: 0 4px 12px rgba(78, 204, 163, 0.2); }
-    .btn-wa:hover { background-color: var(--mint-hover); transform: translateY(-1px); }
-
-    .btn-maps { background-color: var(--indigo); color: var(--text-white); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25); }
-    .btn-maps:hover { background-color: var(--indigo-dark); transform: translateY(-1px); }
-
-    .similar-suggestion {
-      grid-column: 1 / -1;
-      background: rgba(99, 102, 241, 0.1);
-      border: 1px solid var(--indigo);
-      padding: 16px;
-      border-radius: 12px;
-      margin-bottom: 10px;
-    }
-
+    /* BLOQUE PUBLICITARIO DE CONVERSIÓN: "YO CREO EN TU NEGOCIO" */
     .cta-banner {
-      max-width: 1350px;
-      margin: 50px auto 0;
-      padding: 30px 24px;
-      background: linear-gradient(135deg, var(--indigo) 0%, #10b981 100%);
-      border-radius: 20px;
-      text-align: center;
-      box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+      max-width: 1350px; margin: 45px auto 0; padding: 38px 24px;
+      background: radial-gradient(circle at 80% 20%, rgba(78, 204, 163, 0.22) 0%, rgba(99, 102, 241, 0.2) 50%, rgba(16, 16, 24, 0.96) 100%);
+      border: 2px solid rgba(78, 204, 163, 0.45); border-radius: 24px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+    }
+    .cta-Tag {
+      display: inline-block; background: rgba(99, 102, 241, 0.2); border: 1px solid var(--indigo);
+      color: #fff; font-size: 0.72rem; font-weight: 900; padding: 4px 14px; border-radius: 999px; margin-bottom: 10px; text-transform: uppercase;
+    }
+    .cta-banner h3 { font-size: 1.7rem; font-weight: 900; margin-bottom: 8px; color: #fff; }
+    .cta-banner h3 span { color: var(--mint); }
+    .cta-banner p { font-size: 0.94rem; margin-bottom: 22px; color: var(--text-muted); max-width: 640px; margin-left: auto; margin-right: auto; }
+    .btn-join {
+      background: linear-gradient(135deg, var(--mint) 0%, #10b981 100%); color: #052e16; padding: 13px 28px;
+      border-radius: 999px; text-decoration: none; font-weight: 900; font-size: 0.88rem; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 20px var(--mint-glow); border: none; cursor: pointer;
+    }
+    .btn-join-secondary {
+      background: rgba(99, 102, 241, 0.2); color: #fff; border: 1.5px solid var(--indigo); padding: 13px 26px;
+      border-radius: 999px; font-weight: 800; font-size: 0.88rem; display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
     }
 
-    .cta-banner h3 { font-size: 1.4rem; font-weight: 800; margin-bottom: 8px; }
-    .cta-banner p { font-size: 0.92rem; margin-bottom: 16px; opacity: 0.95; }
-    .btn-join { background: var(--charcoal); color: var(--text-white); padding: 12px 26px; border-radius: 99px; text-decoration: none; font-weight: 800; font-size: 0.9rem; display: inline-block; transition: transform 0.2s; }
-    .btn-join:hover { transform: scale(1.05); }
+    .status-msg { grid-column: 1 / -1; text-align: center; padding: 50px 20px; color: var(--text-dim); font-size: 0.95rem; font-weight: 600; }
 
-    .status-msg { grid-column: 1 / -1; text-align: center; padding: 50px 20px; color: var(--text-muted); font-size: 1rem; }
+    /* MODALES (VITRINA ÚNICA COMPARTIBLE, LOGIN OTP Y ESTRELLAS) */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(5, 5, 9, 0.86); backdrop-filter: blur(12px);
+      z-index: 100; display: none; align-items: center; justify-content: center; padding: 16px; overflow-y: auto;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: #12121a; border: 1.5px solid rgba(99, 102, 241, 0.5); border-radius: 24px;
+      max-width: 520px; width: 100%; padding: 24px; box-shadow: 0 25px 60px rgba(0,0,0,0.9); max-height: 92vh; overflow-y: auto;
+    }
+    .modal-input {
+      width: 100%; padding: 11px 14px; border-radius: 12px; border: 1px solid var(--border-glass);
+      background: #09090d; color: #fff; font-size: 0.84rem; margin-top: 4px; margin-bottom: 10px; outline: none;
+    }
+    .modal-input:focus { border-color: var(--mint); }
+    .stars-picker { display: flex; justify-content: center; gap: 10px; font-size: 2rem; cursor: pointer; margin: 10px 0; user-select: none; }
+    .star-pick { color: #334155; }
+    .star-pick.active { color: #fbbf24; text-shadow: 0 0 12px rgba(251, 191, 36, 0.6); }
+
+    footer {
+      max-width: 1350px; margin: 40px auto 0; padding: 24px 20px 0; border-top: 1px solid var(--border-glass);
+      display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 14px; color: var(--text-dim); font-size: 0.8rem;
+    }
   </style>
 </head>
 <body>
 
+  <!-- 11. PUBLICIDAD SUPERIOR DE AFILIACIÓN: "YO CREO EN TU NEGOCIO" -->
+  <div class="top-promo-strip">
+    <span>🚀 <strong class="highlight">Yo CREO en tu negocio:</strong> ¿Tienes un negocio o emprendimiento en el barrio? Inscríbete GRATIS hoy aquí:</span>
+    <div class="top-promo-actions">
+      <a href="https://forms.gle/vbNKsd6NEVYFJRfi7" target="_blank" rel="noopener noreferrer" class="pill-cta-join">Quiero afiliarme gratis →</a>
+      <button type="button" onclick="abrirModalVitrinaDigital()" class="pill-cta-login">🔐 Ya tengo una vitrina</button>
+    </div>
+  </div>
+
   <header>
-    <div class="badge-nodo">&#128205; Soacha Compartir</div>
-    <div class="logo-container">
+    <div class="badge-nodo"><span class="dot"></span> Directorio Digital &bull; Soacha Compartir</div>
+    <div class="logo-container" id="mainCreoLogo">
       <svg id="Capa_2" data-name="Capa 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4551.48 1644.21">
         <defs><style>.cls-1{fill:#fff;}.cls-2{fill:#6366f1;}.cls-3{fill:#4ecca3;}</style></defs>
-        <g id="Capa_1-2" data-name="Capa 1"><g><g><path class="cls-1" d="M1929.44,519.62c69.38,0,125.31,30.04,170.88,84.94l130.5-118.1c-70.43-88.01-178.14-136.68-311.73-136.68-200.38,0-354.25,118.83-390.5,295.36-5.35,26.03-8.23,53.26-8.23,81.6,0,24.89,2.44,48.82,6.58,71.94,32.58,181.83,188.16,305.05,392.15,305.05,133.59,0,241.3-48.67,311.73-136.72l-130.5-118.06c-45.57,54.9-101.5,84.94-170.88,84.94-94.22,0-165.58-52-191.35-135.21-6.8-21.97-10.61-45.98-10.61-71.94,0-29.8,4.88-57.14,13.77-81.6C1769.42,567.58,1838.9,519.62,1929.44,519.62Z"/><path class="cls-1" d="M2917.26,798.68c35.14-40.35,54.85-92.19,57.32-153.54.18-4.27.79-8.29.79-12.65,0-165.69-124.28-268.21-322.08-268.21h-331.41v724.95h205.05v-192.62h111.85l131.53,192.62h219.56l-156.38-227.85C2866.95,845.22,2895.06,824.17,2917.26,798.68ZM2526.93,525.82h113.93c84.92,0,127.39,39.38,127.39,106.67,0,4.45-.69,8.45-1.07,12.65-5.32,58.41-47.1,92.99-126.32,92.99h-113.93V525.82Z"/><polygon class="cls-1" points="3291.16 798.68 3291.16 798.21 3613.25 798.21 3613.25 645.14 3613.25 644.95 3291.16 644.95 3291.16 522.74 3656.74 522.74 3656.74 364.28 3088.17 364.28 3088.17 645.14 3088.17 798.68 3088.17 1089.23 3670.21 1089.23 3670.21 930.77 3291.16 930.77 3291.16 798.68"/><path class="cls-1" d="M4542.93,645.14c-37.05-174.58-192.49-295.36-394.31-295.36s-357.27,120.78-394.31,295.36c-5.53,26.09-8.56,53.32-8.56,81.6,0,24.82,2.5,48.78,6.79,71.94,33.29,179.77,190.57,305.05,396.08,305.05s362.79-125.28,396.08-305.05c4.29-23.16,6.78-47.12,6.78-71.94C4551.48,698.46,4548.46,671.23,4542.93,645.14ZM4148.62,933.89c-87,0-158.85-51.51-185.01-135.21-6.85-21.92-10.74-45.93-10.74-71.94,0-29.87,5.02-57.19,13.95-81.6,28.53-77.97,98.19-125.52,181.8-125.52s153.26,47.55,181.78,125.52c8.93,24.41,13.95,51.73,13.95,81.6,0,26.01-3.89,50.02-10.74,71.94C4307.46,882.38,4235.61,933.89,4148.62,933.89Z"/></g></g><g><path class="cls-1" d="M1520.36,1227.5c0-24.98,19.02-43.39,44.74-43.39,12.43,0,23.65,4.14,31.21,12.43l-5.73,5.73c-6.95-7.07-15.48-10.12-25.23-10.12-20.61,0-36.09,15.12-36.09,35.35s15.48,35.36,36.09,35.36c9.75,0,18.28-3.05,25.23-10.24l5.73,5.73c-7.56,8.28-18.78,12.56-31.33,12.56C1539.38,1270.91,1520.36,1252.5,1520.36,1227.5Z"/><path class="cls-1" d="M1604.46,1238.11c0-19.01,13.89-32.54,32.66-32.54s32.56,13.53,32.56,32.54-13.78,32.67-32.56,32.67S1604.46,1257.13,1604.46,1238.11ZM1660.9,1238.11c0-14.99-10.12-24.99-23.78-24.99s-23.89,10-23.89,24.99,10.24,24.99,23.89,24.99S1660.9,1253.11,1660.9,1238.11Z"/><path class="cls-1" d="M1793.13,1232.99v37.18h-8.65v-36.33c0-13.53-6.84-20.47-18.41-20.47-13.16,0-21.46,8.53-21.46,23.16v33.64h-8.66v-36.33c0-13.53-6.82-20.47-18.51-20.47-13.04,0-21.46,8.53-21.46,23.16v33.64h-8.66v-64.11h8.29v11.69c4.51-7.68,12.8-12.18,23.53-12.18s18.9,4.5,22.79,13.53c4.63-8.29,13.78-13.53,25.35-13.53C1782.89,1205.57,1793.13,1214.58,1793.13,1232.99Z"/><path class="cls-1" d="M1872.69,1240.79h-53.63c.96,13.41,11.2,22.31,25.23,22.31,7.8,0,14.74-2.8,19.63-8.41l4.88,5.61c-5.74,6.82-14.64,10.48-24.76,10.48-19.98,0-33.64-13.65-33.64-32.67s13.29-32.54,31.33-32.54,31.08,13.28,31.08,32.54C1872.81,1238.84,1872.69,1239.82,1872.69,1240.79ZM1819.06,1234.33h45.46c-1.09-12.55-10.24-21.33-22.79-21.33S1820.15,1221.78,1819.06,1234.33Z"/><path class="cls-1" d="M1922.78,1205.57v8.41c-.74,0-1.47-.12-2.09-.12-13.39,0-21.56,8.52-21.56,23.65v32.66h-8.66v-64.11h8.29v12.55C1902.78,1210.07,1910.95,1205.57,1922.78,1205.57Z"/><path class="cls-1" d="M1931.3,1238.11c0-19.13,13.89-32.54,33.03-32.54,10.85,0,19.99,4.26,25.11,12.67l-6.46,4.38c-4.4-6.45-11.22-9.5-18.65-9.5-14.02,0-24.26,10-24.26,24.99s10.24,24.99,24.26,24.99c7.43,0,14.25-2.92,18.65-9.39l6.46,4.4c-5.12,8.27-14.26,12.67-25.11,12.67C1945.19,1270.78,1931.3,1257.25,1931.3,1238.11Z"/><path class="cls-1" d="M2004.41,1185.81c0-3.28,2.81-6.09,6.33-6.09s6.35,2.69,6.35,5.97c0,3.54-2.69,6.34-6.35,6.34S2004.41,1189.23,2004.41,1185.81ZM2006.36,1206.06h8.66v64.11h-8.66V1206.06Z"/><path class="cls-1" d="M2032.69,1238.11c0-19.01,13.89-32.54,32.66-32.54s32.56,13.53,32.56,32.54-13.78,32.67-32.56,32.67S2032.69,1257.13,2032.69,1238.11ZM2089.12,1238.11c0-14.99-10.11-24.99-23.77-24.99s-23.89,10-23.89,24.99,10.23,24.99,23.89,24.99S2089.12,1253.11,2089.12,1238.11Z"/><path class="cls-1" d="M2106.66,1262.86l3.89-6.84c5.12,4.03,13.78,7.21,22.79,7.21,12.2,0,17.2-4.16,17.2-10.49,0-16.7-41.57-3.54-41.57-28.89,0-10.48,9.02-18.28,25.35-18.28,8.3,0,17.31,2.31,22.67,5.97l-3.77,6.95c-5.61-3.91-12.32-5.49-18.9-5.49-11.58,0-16.7,4.51-16.7,10.61,0,17.3,41.56,4.26,41.56,28.89,0,11.09-9.74,18.28-26.43,18.28C2122.14,1270.78,2111.9,1267.37,2106.66,1262.86Z"/><path class="cls-1" d="M2262.9,1240.79h-53.64c.98,13.41,11.22,22.31,25.24,22.31,7.8,0,14.75-2.8,19.62-8.41l4.88,5.61c-5.74,6.82-14.63,10.48-24.74,10.48-20,0-33.65-13.65-33.65-32.67s13.28-32.54,31.33-32.54,31.09,13.28,31.09,32.54C2263.03,1238.84,2262.9,1239.82,2262.9,1240.79ZM2209.26,1234.33h45.47c-1.1-12.55-10.23-21.33-22.79-21.33S2210.36,1221.78,2209.26,1234.33Z"/><path class="cls-1" d="M2339.66,1232.99v37.18h-8.64v-36.33c0-13.53-7.08-20.47-19.27-20.47-13.78,0-22.42,8.53-22.42,23.16v33.64h-8.66v-64.11h8.29v11.81c4.63-7.8,13.29-12.3,24.39-12.3C2328.95,1205.57,2339.66,1214.58,2339.66,1232.99Z"/><path class="cls-1" d="M2455.2,1270.17l-19.5-27.42c-2.2.23-4.4.35-6.83.35h-22.92v27.07h-9.03v-85.33h31.95c21.7,0,34.87,10.98,34.87,29.26,0,13.4-7.09,22.79-19.52,26.81l20.85,29.26H2455.2ZM2454.71,1214.1c0-13.65-9.01-21.46-26.09-21.46h-22.67v42.78h22.67C2445.7,1235.42,2454.71,1227.5,2454.71,1214.1Z"/><path class="cls-1" d="M2539.04,1240.79h-53.63c.96,13.41,11.2,22.31,25.23,22.31,7.8,0,14.74-2.8,19.63-8.41l4.88,5.61c-5.74,6.82-14.64,10.48-24.76,10.48-19.98,0-33.64-13.65-33.64-32.67s13.29-32.54,31.33-32.54,31.08,13.28,31.08,32.54C2539.16,1238.84,2539.04,1239.82,2539.04,1240.79ZM2485.41,1234.33h45.46c-1.09-12.55-10.24-21.33-22.79-21.33S2486.5,1221.78,2485.41,1234.33Z"/><path class="cls-1" d="M2615.32,1179.72v90.45h-8.29v-12.68c-5.24,8.66-14.13,13.29-24.74,13.29-18.28,0-31.94-13.29-31.94-32.67s13.66-32.54,31.94-32.54c10.24,0,19.02,4.38,24.37,12.67v-38.52H2615.32ZM2606.78,1238.11c0-14.99-10.23-24.99-23.75-24.99s-23.9,10-23.9,24.99,10.24,24.99,23.9,24.99S2606.78,1253.11,2606.78,1238.11Z"/><path class="cls-1" d="M2725.23,1206.06l-32.05,71.79c-5.36,12.55-12.2,16.58-21.33,16.58-5.98,0-11.71-1.96-15.6-5.85l4.01-6.47c3.17,3.17,7.08,4.89,11.71,4.89,5.73,0,9.63-2.68,13.29-10.73l2.8-6.22-28.64-63.99h9.01l24.14,54.48,24.14-54.48H2725.23Z"/><path class="cls-1" d="M2831.51,1262.37v7.8h-60.34v-85.33h58.5v7.8h-49.49v30.35h44.13v7.68h-44.13v31.7H2831.51Z"/><path class="cls-1" d="M2956.67,1232.99v37.18h-8.66v-36.33c0-13.53-6.82-20.47-18.4-20.47-13.17,0-21.45,8.53-21.45,23.16v33.64h-8.66v-36.33c0-13.53-6.82-20.47-18.53-20.47-13.04,0-21.46,8.53-21.46,23.16v33.64h-8.64v-64.11h8.28v11.69c4.52-7.68,12.81-12.18,23.52-12.18s18.9,4.5,22.81,13.53c4.63-8.29,13.76-13.53,25.35-13.53C2946.44,1205.57,2956.67,1214.58,2956.67,1232.99Z"/><path class="cls-1" d="M3045.14,1238.11c0,19.51-13.65,32.67-31.94,32.67-10.24,0-19.02-4.4-24.38-12.67v35.71h-8.65v-87.76h8.28v12.67c5.24-8.54,14.14-13.16,24.75-13.16C3031.49,1205.57,3045.14,1218.73,3045.14,1238.11ZM3036.48,1238.11c0-14.87-10.36-24.99-23.89-24.99s-23.9,10.12-23.9,24.99,10.24,24.99,23.9,24.99S3036.48,1253.11,3036.48,1238.11Z"/><path class="cls-1" d="M3095.09,1205.57v8.41c-.73,0-1.47-.12-2.07-.12-13.41,0-21.58,8.52-21.58,23.65v32.66h-8.66v-64.11h8.3v12.55C3075.11,1210.07,3083.26,1205.57,3095.09,1205.57Z"/><path class="cls-1" d="M3165.91,1240.79h-53.63c.96,13.41,11.2,22.31,25.22,22.31,7.81,0,14.75-2.8,19.62-8.41l4.88,5.61c-5.72,6.82-14.63,10.48-24.74,10.48-19.99,0-33.64-13.65-33.64-32.67s13.28-32.54,31.32-32.54,31.09,13.28,31.09,32.54C3166.03,1238.84,3165.91,1239.82,3165.91,1240.79ZM3112.28,1234.33h45.46c-1.11-12.55-10.24-21.33-22.8-21.33S3113.36,1221.78,3112.28,1234.33Z"/><path class="cls-1" d="M3242.68,1232.99v37.18h-8.66v-36.33c0-13.53-7.07-20.47-19.27-20.47-13.76,0-22.42,8.53-22.42,23.16v33.64h-8.66v-64.11h8.29v11.81c4.63-7.8,13.29-12.3,24.39-12.3C3231.95,1205.57,3242.68,1214.58,3242.68,1232.99Z"/><path class="cls-1" d="M3324.94,1179.72v90.45h-8.29v-12.68c-5.24,8.66-14.15,13.29-24.74,13.29-18.28,0-31.94-13.29-31.94-32.67s13.66-32.54,31.94-32.54c10.24,0,19.01,4.38,24.37,12.67v-38.52H3324.94ZM3316.4,1238.11c0-14.99-10.24-24.99-23.77-24.99s-23.89,10-23.89,24.99,10.25,24.99,23.89,24.99S3316.4,1253.11,3316.4,1238.11Z"/><path class="cls-1" d="M3404.87,1240.79h-53.63c.97,13.41,11.21,22.31,25.23,22.31,7.8,0,14.75-2.8,19.62-8.41l4.87,5.61c-5.71,6.82-14.62,10.48-24.73,10.48-19.99,0-33.65-13.65-33.65-32.67s13.29-32.54,31.33-32.54,31.08,13.28,31.08,32.54C3404.99,1238.84,3404.87,1239.82,3404.87,1240.79ZM3351.24,1234.33h45.46c-1.1-12.55-10.24-21.33-22.79-21.33S3352.33,1221.78,3351.24,1234.33Z"/><path class="cls-1" d="M3481.17,1179.72v90.45h-8.29v-12.68c-5.24,8.66-14.15,13.29-24.74,13.29-18.28,0-31.94-13.29-31.94-32.67s13.66-32.54,31.94-32.54c10.24,0,19.01,4.38,24.37,12.67v-38.52H3481.17ZM3472.63,1238.11c0-14.99-10.24-24.99-23.77-24.99s-23.89,10-23.89,24.99,10.25,24.99,23.89,24.99S3472.63,1253.11,3472.63,1238.11Z"/><path class="cls-1" d="M3498.81,1238.11c0-19.01,13.89-32.54,32.66-32.54s32.56,13.53,32.56,32.54-13.78,32.67-32.56,32.67S3498.81,1257.13,3498.81,1238.11ZM3555.25,1238.11c0-14.99-10.12-24.99-23.78-24.99s-23.89,10-23.89,24.99,10.25,24.99,23.89,24.99S3555.25,1253.11,3555.25,1238.11Z"/><path class="cls-1" d="M3613.98,1205.57v8.41c-.73,0-1.47-.12-2.07-.12-13.41,0-21.58,8.52-21.58,23.65v32.66h-8.66v-64.11h8.29v12.55C3593.99,1210.07,3602.15,1205.57,3613.98,1205.57Z"/><path class="cls-1" d="M3684.79,1240.79h-53.63c.97,13.41,11.21,22.31,25.23,22.31,7.8,0,14.75-2.8,19.62-8.41l4.87,5.61c-5.71,6.82-14.62,10.48-24.73,10.48-19.99,0-33.65-13.65-33.65-32.67s13.29-32.54,31.33-32.54,31.09,13.28,31.09,32.54C3684.92,1238.84,3684.79,1239.82,3684.79,1240.79ZM3631.16,1234.33h45.46c-1.1-12.55-10.24-21.33-22.79-21.33S3632.25,1221.78,3631.16,1234.33Z"/><path class="cls-1" d="M3693.68,1262.86l3.9-6.84c5.11,4.03,13.77,7.21,22.8,7.21,12.19,0,17.18-4.16,17.18-10.49,0-16.7-41.56-3.54-41.56-28.89,0-10.48,9.01-18.28,25.35-18.28,8.29,0,17.3,2.31,22.67,5.97l-3.77,6.95c-5.61-3.91-12.31-5.49-18.9-5.49-11.57,0-16.69,4.51-16.69,10.61,0,17.3,41.56,4.26,41.56,28.89,0,11.09-9.76,18.28-26.45,18.28C3709.16,1270.78,3698.92,1267.37,3693.68,1262.86Z"/><path class="cls-1" d="M3788.37,1227.5c0-24.86,19.01-43.39,44.85-43.39s44.74,18.41,44.74,43.39-19.14,43.41-44.74,43.41S3788.37,1252.38,3788.37,1227.5ZM3868.95,1227.5c0-20.36-15.25-35.35-35.73-35.35s-35.96,14.99-35.96,35.35,15.36,35.36,35.96,35.36S3868.95,1247.87,3868.95,1227.5Z"/><path class="cls-1" d="M3928.63,1205.57v8.41c-.73,0-1.45-.12-2.07-.12-13.41,0-21.58,8.52-21.58,23.65v32.66h-8.66v-64.11h8.3v12.55C3908.65,1210.07,3916.8,1205.57,3928.63,1205.57Z"/><path class="cls-1" d="M4002.99,1206.06v56.31c0,22.07-10.86,32.06-32.07,32.06-11.71,0-23.16-3.54-29.87-9.88l4.4-6.58c6.08,5.49,15.35,8.78,25.23,8.78,16.21,0,23.65-7.45,23.65-23.28v-8.17c-5.37,8.17-14.52,12.43-25,12.43-18.27,0-32.18-12.8-32.18-31.2s13.91-30.96,32.18-30.96c10.73,0,20,4.38,25.36,12.79v-12.3H4002.99ZM3994.57,1236.53c0-13.91-10.24-23.41-24.39-23.41s-24.26,9.5-24.26,23.41,10.13,23.52,24.26,23.52S3994.57,1250.43,3994.57,1236.53Z"/><path class="cls-1" d="M4075.61,1230.43v39.74h-8.3v-9.99c-3.91,6.57-11.46,10.6-22.07,10.6-14.5,0-23.4-7.55-23.4-18.65,0-9.87,6.34-18.16,24.75-18.16h20.36v-3.91c0-10.96-6.23-16.94-18.17-16.94-8.29,0-16.09,2.93-21.33,7.56l-3.9-6.45c6.46-5.49,15.98-8.66,26.09-8.66C4066.21,1205.57,4075.61,1213.86,4075.61,1230.43ZM4066.95,1250.9v-10.48h-20.11c-12.43,0-16.47,4.89-16.47,11.46,0,7.44,5.98,12.07,16.22,12.07S4063.53,1259.32,4066.95,1250.9Z"/><path class="cls-1" d="M4158.11,1232.99v37.18h-8.66v-36.33c0-13.53-7.06-20.47-19.26-20.47-13.77,0-22.43,8.53-22.43,23.16v33.64h-8.66v-64.11h8.29v11.81c4.63-7.8,13.29-12.3,24.39-12.3C4147.38,1205.57,4158.11,1214.58,4158.11,1232.99Z"/><path class="cls-1" d="M4179.66,1185.81c0-3.28,2.81-6.09,6.35-6.09s6.33,2.69,6.33,5.97c0,3.54-2.68,6.34-6.33,6.34S4179.66,1189.23,4179.66,1185.81ZM4181.61,1206.06h8.66v64.11h-8.66V1206.06Z"/><path class="cls-1" d="M4259.62,1262.98v7.19h-52.17v-5.73l40.36-51.07h-39.62v-7.31h50.7v5.71l-40.34,51.21H4259.62Z"/><path class="cls-1" d="M4325.07,1230.43v39.74h-8.29v-9.99c-3.91,6.57-11.47,10.6-22.07,10.6-14.5,0-23.41-7.55-23.41-18.65,0-9.87,6.35-18.16,24.76-18.16h20.35v-3.91c0-10.96-6.22-16.94-18.16-16.94-8.29,0-16.1,2.93-21.34,7.56l-3.89-6.45c6.45-5.49,15.97-8.66,26.09-8.66C4315.68,1205.57,4325.07,1213.86,4325.07,1230.43ZM4316.41,1250.9v-10.48h-20.11c-12.43,0-16.46,4.89-16.46,11.46,0,7.44,5.98,12.07,16.22,12.07S4312.99,1259.32,4316.41,1250.9Z"/><path class="cls-1" d="M4407.32,1179.72v90.45h-8.3v-12.68c-5.24,8.66-14.14,13.29-24.73,13.29-18.29,0-31.95-13.29-31.95-32.67s13.66-32.54,31.95-32.54c10.23,0,19,4.38,24.37,12.67v-38.52H4407.32ZM4398.78,1238.11c0-14.99-10.24-24.99-23.77-24.99-23.9,10-23.9,24.99,10.26,24.99,23.9,24.99S4398.78,1253.11,4398.78,1238.11Z"/><path class="cls-1" d="M4424.97,1238.11c0-19.01,13.89-32.54,32.67-32.54s32.55,13.53,32.55,32.54-13.78,32.67-32.55,32.67S4424.97,1257.13,4424.97,1238.11ZM4481.41,1238.11c0-14.99-10.12-24.99-23.77-24.99-23.9,10-23.9,24.99,10.25,24.99,23.9,24.99S4481.41,1253.11,4481.41,1238.11Z"/><path class="cls-1" d="M4498.94,1262.86l3.9-6.84c5.11,4.03,13.77,7.21,22.8,7.21,12.19,0,17.18-4.16,17.18-10.49,0-16.7-41.56-3.54-41.56-28.89,0-10.48,9.01-18.28,25.35-18.28,8.29,0,17.3,2.31,22.67,5.97l-3.77,6.95c-5.61-3.91-12.31-5.49-18.9-5.49-11.57,0-16.69,4.51-16.69,10.61,0,17.3,41.56,4.26,41.56,28.89,0,11.09-9.76,18.28-26.45,18.28C4514.42,1270.78,4504.18,1267.37,4498.94,1262.86Z"/></g></g><g><path class="cls-2" d="M729.15,1610.19c-2.42-30.28-54.72-90.47-54.72-90.47,0,1.11,1.78,18.4,1.78,19.51-.67,18.91-8.46,36.48-22.25,49.83l-16.46,15.79,24.92,26.25c5.56,6,12.67,10,20.24,11.78,10.9,2.9,22.69,1.12,31.81-5.78C722.92,1630.65,730.01,1621.09,729.15,1610.19Z"/><g><path class="cls-3" d="M516.47,1574.88c-.19,2.61-.17,5.22.06,7.82.93,10.37,5.2,20.42,12.92,28.43,2.31,2.4,4.83,4.51,7.49,6.31.92.63,1.95,1.02,2.9,1.57,1.8,1.04,3.58,2.16,5.49,2.94,1.18.5,2.44.73,3.65,1.12,1.78.57,3.53,1.24,5.35,1.6,1.34.27,2.71.26,4.06.41,1.76.2,3.5.51,5.27.51,1.79,0,3.56-.3,5.34-.48,1.34-.15,2.69-.14,4.01-.38,1.83-.35,3.62-1.01,5.41-1.57,1.24-.38,2.5-.6,3.71-1.08,1.91-.76,3.72-1.84,5.55-2.85,1.02-.56,2.1-.95,3.08-1.58,2.76-1.78,5.4-3.85,7.85-6.21l39.9-38.45c4.93-4.75,8.69-10.25,11.28-16.12,1.29-2.94,2.28-5.97,2.98-9.05,2.79-12.31.83-25.39-5.98-36.26-1.7-2.72-3.7-5.3-6.01-7.7-2.15-2.22-4.49-4.13-6.93-5.83-.79-.56-1.63-.99-2.45-1.49-1.72-1.04-3.45-2.01-5.27-2.82-.99-.44-1.99-.81-3.01-1.18-1.76-.64-3.53-1.18-5.35-1.6-1.05-.25-2.08-.49-3.14-.66-1.93-.32-3.87-.48-5.83-.56-.7-.03-1.39-.2-2.09-.2-.2,0-.4.07-.6.07-3.65.05-7.29.54-10.88,1.4-.78.18-1.54.42-2.31.64-3.67,1.06-7.28,2.39-10.7,4.3,0,0,0,0,0,0,11.32-18.63,9.68-42.8-5.76-58.82-2.14-2.23-4.48-4.13-6.93-5.83-.79-.56-1.63-.98-2.44-1.48-1.72-1.05-3.46-2.02-5.28-2.83-.99-.44-1.99-.81-3-1.18-1.77-.64-3.54-1.18-5.36-1.61-1.04-.24-2.07-.48-3.13-.65-1.94-.33-3.89-.48-5.85-.57-.7-.03-1.38-.19-2.08-.19-.2,0-.4.07-.6.07-3.65.05-7.29.54-10.89,1.4-.78.18-1.52.41-2.29.63-3.67,1.06-7.29,2.4-10.72,4.31,1.42-2.33,2.63-4.74,3.64-7.22,4.04-9.9,4.81-20.76,2.2-30.86-.65-2.53-1.51-5.01-2.58-7.41-2.15-4.81-5.15-9.33-9.01-13.33-2.14-2.23-4.48-4.13-6.92-5.84-.8-.55-1.64-.98-2.46-1.48-1.71-1.04-3.45-2.02-5.26-2.82-.99-.45-2-.81-3.02-1.18-1.76-.64-3.53-1.18-5.34-1.61-1.05-.24-2.09-.48-3.15-.66-1.93-.32-3.87-.47-5.83-.56-.7-.03-1.38-.2-2.08-.2-.21,0-.4.08-.61.08-3.65.04-7.28.54-10.88,1.39-.78.19-1.53.42-2.3.65-3.67,1.05-7.29,2.39-10.71,4.3,5.66-9.32,8.08-20.02,7.16-30.39-.93-10.37-5.19-20.42-12.91-28.43-.3-.31-.65-.51-.95-.8-2.07-2.04-4.22-3.94-6.55-5.52-.83-.56-1.75-.9-2.61-1.41-1.9-1.11-3.77-2.27-5.78-3.1-1.16-.48-2.39-.7-3.58-1.09-1.8-.58-3.57-1.26-5.42-1.62-1.31-.26-2.65-.26-3.97-.41-1.79-.2-3.57-.51-5.37-.51-.03,0-.07-.01-.1-.01-1.74,0-3.48.31-5.21.49-1.35.14-2.69.13-4.03.38-1.83.35-3.61,1.01-5.41,1.57-1.24.38-2.5.6-3.71,1.08-2.02.8-3.93,1.93-5.86,3.01-.91.5-1.88.85-2.76,1.42-2.76,1.77-5.4,3.84-7.86,6.21l-39.9,38.44c-4.93,4.76-8.69,10.26-11.27,16.13-2.58,5.87-3.98,12.12-4.19,18.38-.2,6.25.79,12.51,2.98,18.41,2.2,5.89,5.6,11.42,10.22,16.22,2.14,2.22,4.48,4.13,6.92,5.83.79.55,1.63.98,2.44,1.47,1.72,1.05,3.47,2.03,5.29,2.84.98.44,1.99.81,3,1.17,1.76.64,3.54,1.18,5.36,1.61,1.04.24,2.08.49,3.14.66,1.93.32,3.87.48,5.83.56.89.04,1.79.13,2.69.12,3.65-.04,7.29-.54,10.89-1.39.77-.19,1.52-.42,2.29-.64,3.67-1.06,7.29-2.39,10.71-4.3-5.66,9.31-8.08,20.01-7.16,30.38.93,10.38,5.19,20.43,12.91,28.44,2.15,2.22,4.49,4.13,6.93,5.83.79.55,1.62.98,2.43,1.47,1.73,1.05,3.48,2.03,5.3,2.84.98.44,1.99.81,3,1.17,1.76.64,3.53,1.18,5.35,1.61,1.04.24,2.09.49,3.15.66,1.93.32,3.87.48,5.82.56.9.04,1.79.14,2.69.12,3.65-.04,7.29-.54,10.88-1.39.78-.18,1.55-.42,2.31-.64,3.67-1.06,7.28-2.39,10.7-4.3,0,0,0,0,.01,0h0c-2.83,4.66-4.85,9.66-6.05,14.79-.6,2.57-.99,5.17-1.18,7.78-.74,10.43,1.84,20.96,7.84,29.88,1.5,2.24,3.21,4.37,5.14,6.37,2.14,2.22,4.49,4.13,6.93,5.84.78.54,1.62.97,2.43,1.46,1.72,1.06,3.47,2.03,5.3,2.85.98.43,1.98.8,2.99,1.17,1.76.64,3.54,1.17,5.36,1.6,1.04.25,2.09.49,3.14.66,1.93.32,3.87.48,5.83.56.9.04,1.79.14,2.69.13,3.65-.05,7.29-.54,10.89-1.4.77-.18,1.53-.42,2.29-.64,3.67-1.06,7.29-2.39,10.72-4.3-1.42,2.33-2.63,4.74-3.64,7.22C518.04,1564.48,516.84,1569.67,516.47,1574.88Z"/><path class="cls-3" d="M627.68,247.42c9.94-.71,19.94-1.24,30.07-1.24,228.59,0,413.91,185.32,413.91,413.91,0,142.47-71.99,268.13-181.57,342.59-66.24,45.01-66.86-27.73-152.98-27.73-16.77,0-83.99,51.37-132.2,82.46l.67.37c-.52.19-81.58,44.24-95,76.54-4.47,10.75-4.05,21.61,1.26,33.24,12.4,27.12,40.38,34.43,83.19,21.72,32.94-9.78,64.75-29.25,91.96-56.28,20.54-22.93,54.41-24.91,76.4-5.33l218.69,194.55c3.58,3.18,6.6,6.84,9.28,10.72,170.46-194.53,336.76-442.1,326.47-672.85-11.78-264.35-162.16-492.71-383.14-598.06-15.93-7.59-32.32-14.36-48.95-20.64-13.91,3.17-27.7,6.83-41.11,11.54-17.56,6.15-34.8,13.68-51.25,22.35C719.54,114.23,662.36,175.11,627.68,247.42Z"/><path class="cls-2" d="M323.43,1325.7l39.82-38.48c13.56-13.13,31.58-20.25,50.27-20.25s37.14,7.57,50.26,21.13c12.24,12.68,18.69,29.14,19.36,45.83,17.12,1.11,33.14,8.45,44.93,20.9,7.19,7.46,12.38,16.22,15.58,25.56,3.81,11.16,12.58,20.5,23.6,24.69,9.47,3.6,18.12,9.23,25.32,16.71,6.98,7.24,12.09,15.83,15.27,25.03,3.89,11.26,12.65,20.75,23.79,24.99,9.45,3.6,18.02,9.23,25.23,16.71,3.78,4,6.89,8.45,9.78,13.12l80.08,55.83c5.11,4.67,11.12,7.79,17.13,9.56,12.67,3.56,26.24,1.12,35.58-7.56.76-.69,2.78-2.64,5.83-5.6,18.34-17.83,18.7-47.32.67-65.45l-147.08-147.83,162.77,138.61c18.12,15.43,45.01,14.47,61.98-2.21.22-.21.43-.43.65-.64,18.21-17.9,18.32-47.22.26-65.26l-152.57-152.33,168.93,142.89c18.05,15.26,44.82,14.24,61.78-2.24,2.45-2.38,4.15-4.02,4.94-4.76,8.01-7.34,12.46-17.35,12.24-28.03,0-5.78-1.34-11.12-3.78-16.23-2.23-4.23-5.12-8.23-8.68-11.57l-218.87-194.63c-12.68-11.34-32.48-10.23-44.04,2.67l-1.78,2c-29.81,29.59-64.95,50.94-101.43,61.84-68.51,20.24-97.43-7.34-109.66-33.81-8.01-17.35-8.45-34.7-1.56-51.16,11.79-28.03,47.16-56.05,69.4-71.4.67-.45,1.11-.89,1.78-1.34,7.79-5.33,13.79-8.89,16.02-10.01.44-.44.88-.66,1.11-.66,22.24-15.35,72.95-42.26,69.84-43.6-71.4-33.36-184.4,46.71-244.23-11.56-88.3-86.31-160.15-194.19-160.15-326.98,0-159.04,89.64-297.17,221.1-366.35,17.79-9.56,36.48-17.57,55.83-24.46,2.75-.97,5.5-1.87,8.26-2.74,13.23-4.15,23.49-14.22,28.83-27.01,39.35-94.26,110.62-173.87,204.47-223.38,4-2.01,8.01-3.78,12.01-5.79C737.15,3.78,698.45.22,659.08,0,295.18.89,16.7,296.28.46,660.18c-10.23,228.44,152.81,473.56,321.41,667.07C322.54,1326.81,322.76,1326.14,323.43,1325.7Z"/><circle class="cls-3" cx="658.43" cy="658.89" r="170.52"/></g></g>
+        <g id="Capa_1-2" data-name="Capa 1"><g><g><path class="cls-1" d="M1929.44,519.62c69.38,0,125.31,30.04,170.88,84.94l130.5-118.1c-70.43-88.01-178.14-136.68-311.73-136.68-200.38,0-354.25,118.83-390.5,295.36-5.35,26.03-8.23,53.26-8.23,81.6,0,24.89,2.44,48.82,6.58,71.94,32.58,181.83,188.16,305.05,392.15,305.05,133.59,0,241.3-48.67,311.73-136.72l-130.5-118.06c-45.57,54.9-101.5,84.94-170.88,84.94-94.22,0-165.58-52-191.35-135.21-6.8-21.97-10.61-45.98-10.61-71.94,0-29.8,4.88-57.14,13.77-81.6C1769.42,567.58,1838.9,519.62,1929.44,519.62Z"/><path class="cls-1" d="M2917.26,798.68c35.14-40.35,54.85-92.19,57.32-153.54.18-4.27.79-8.29.79-12.65,0-165.69-124.28-268.21-322.08-268.21h-331.41v724.95h205.05v-192.62h111.85l131.53,192.62h219.56l-156.38-227.85C2866.95,845.22,2895.06,824.17,2917.26,798.68ZM2526.93,525.82h113.93c84.92,0,127.39,39.38,127.39,106.67,0,4.45-.69,8.45-1.07,12.65-5.32,58.41-47.1,92.99-126.32,92.99h-113.93V525.82Z"/><polygon class="cls-1" points="3291.16 798.68 3291.16 798.21 3613.25 798.21 3613.25 645.14 3613.25 644.95 3291.16 644.95 3291.16 522.74 3656.74 522.74 3656.74 364.28 3088.17 364.28 3088.17 645.14 3088.17 798.68 3088.17 1089.23 3670.21 1089.23 3670.21 930.77 3291.16 930.77 3291.16 798.68"/><path class="cls-1" d="M4542.93,645.14c-37.05-174.58-192.49-295.36-394.31-295.36s-357.27,120.78-394.31,295.36c-5.53,26.09-8.56,53.32-8.56,81.6,0,24.82,2.5,48.78,6.79,71.94,33.29,179.77,190.57,305.05,396.08,305.05s362.79-125.28,396.08-305.05c4.29-23.16,6.78-47.12,6.78-71.94C4551.48,698.46,4548.46,671.23,4542.93,645.14ZM4148.62,933.89c-87,0-158.85-51.51-185.01-135.21-6.85-21.92-10.74-45.93-10.74-71.94,0-29.87,5.02-57.19,13.95-81.6,28.53-77.97,98.19-125.52,181.8-125.52s153.26,47.55,181.78,125.52c8.93,24.41,13.95,51.73,13.95,81.6,0,26.01-3.89,50.02-10.74,71.94C4307.46,882.38,4235.61,933.89,4148.62,933.89Z"/></g></g><g><path class="cls-2" d="M729.15,1610.19c-2.42-30.28-54.72-90.47-54.72-90.47,0,1.11,1.78,18.4,1.78,19.51-.67,18.91-8.46,36.48-22.25,49.83l-16.46,15.79,24.92,26.25c5.56,6,12.67,10,20.24,11.78,10.9,2.9,22.69,1.12,31.81-5.78C722.92,1630.65,730.01,1621.09,729.15,1610.19Z"/><g><path class="cls-3" d="M516.47,1574.88c-.19,2.61-.17,5.22.06,7.82.93,10.37,5.2,20.42,12.92,28.43,2.31,2.4,4.83,4.51,7.49,6.31.92.63,1.95,1.02,2.9,1.57,1.8,1.04,3.58,2.16,5.49,2.94,1.18.5,2.44.73,3.65,1.12,1.78.57,3.53,1.24,5.35,1.6,1.34.27,2.71.26,4.06.41,1.76.2,3.5.51,5.27.51,1.79,0,3.56-.3,5.34-.48,1.34-.15,2.69-.14,4.01-.38,1.83-.35,3.62-1.01,5.41-1.57,1.24-.38,2.5-.6,3.71-1.08,1.91-.76,3.72-1.84,5.55-2.85,1.02-.56,2.1-.95,3.08-1.58,2.76-1.78,5.4-3.85,7.85-6.21l39.9-38.45c4.93-4.75,8.69-10.25,11.28-16.12,1.29-2.94,2.28-5.97,2.98-9.05,2.79-12.31.83-25.39-5.98-36.26-1.7-2.72-3.7-5.3-6.01-7.7-2.15-2.22-4.49-4.13-6.93-5.83-.79-.56-1.63-.99-2.45-1.49-1.72-1.04-3.45-2.01-5.27-2.82-.99-.44-1.99-.81-3.01-1.18-1.76-.64-3.53-1.18-5.35-1.6-1.05-.25-2.08-.49-3.14-.66-1.93-.32-3.87-.48-5.83-.56-.7-.03-1.39-.2-2.09-.2-.2,0-.4.07-.6.07-3.65.05-7.29.54-10.88,1.4-.78.18-1.54.42-2.31.64-3.67,1.06-7.28,2.39-10.7,4.3,0,0,0,0,0,0,11.32-18.63,9.68-42.8-5.76-58.82-2.14-2.23-4.48-4.13-6.93-5.83-.79-.56-1.63-.98-2.44-1.48-1.72-1.05-3.46-2.02-5.28-2.83-.99-.44-1.99-.81-3-1.18-1.77-.64-3.54-1.18-5.36-1.61-1.04-.24-2.07-.48-3.13-.65-1.94-.33-3.89-.48-5.85-.57-.7-.03-1.38-.19-2.08-.19-.2,0-.4.07-.6.07-3.65.05-7.29.54-10.89,1.4-.78.18-1.52.41-2.29.63-3.67,1.06-7.29,2.4-10.72,4.31,1.42-2.33,2.63-4.74,3.64-7.22,4.04-9.9,4.81-20.76,2.2-30.86-.65-2.53-1.51-5.01-2.58-7.41-2.15-4.81-5.15-9.33-9.01-13.33-2.14-2.23-4.48-4.13-6.92-5.84-.8-.55-1.64-.98-2.46-1.48-1.71-1.04-3.45-2.02-5.26-2.82-.99-.45-2-.81-3.02-1.18-1.76-.64-3.53-1.18-5.34-1.61-1.05-.24-2.09-.48-3.15-.66-1.93-.32-3.87-.47-5.83-.56-.7-.03-1.38-.2-2.08-.2-.21,0-.4.08-.61.08-3.65.04-7.28.54-10.88,1.39-.78.19-1.53.42-2.3.65-3.67,1.05-7.29,2.39-10.71,4.3,5.66-9.32,8.08-20.02,7.16-30.39-.93-10.37-5.19-20.42-12.91-28.43-.3-.31-.65-.51-.95-.8-2.07-2.04-4.22-3.94-6.55-5.52-.83-.56-1.75-.9-2.61-1.41-1.9-1.11-3.77-2.27-5.78-3.1-1.16-.48-2.39-.7-3.58-1.09-1.8-.58-3.57-1.26-5.42-1.62-1.31-.26-2.65-.26-3.97-.41-1.79-.2-3.57-.51-5.37-.51-.03,0-.07-.01-.1-.01-1.74,0-3.48.31-5.21.49-1.35.14-2.69.13-4.03.38-1.83.35-3.61,1.01-5.41,1.57-1.24.38-2.5.6-3.71,1.08-2.02.8-3.93,1.93-5.86,3.01-.91.5-1.88.85-2.76,1.42-2.76,1.77-5.4,3.84-7.86,6.21l-39.9,38.44c-4.93,4.76-8.69,10.26-11.27,16.13-2.58,5.87-3.98,12.12-4.19,18.38-.2,6.25.79,12.51,2.98,18.41,2.2,5.89,5.6,11.42,10.22,16.22,2.14,2.22,4.48,4.13,6.92,5.83.79.55,1.63.98,2.44,1.47,1.72,1.05,3.47,2.03,5.29,2.84.98.44,1.99.81,3,1.17,1.76.64,3.54,1.18,5.36,1.61,1.04.24,2.08.49,3.14.66,1.93.32,3.87.48,5.83.56.89.04,1.79.13,2.69.12,3.65-.04,7.29-.54,10.89-1.39.77-.19,1.52-.42,2.29-.64,3.67-1.06,7.29-2.39,10.71-4.3-5.66,9.31-8.08,20.01-7.16,30.38.93,10.38,5.19,20.43,12.91,28.44,2.15,2.22,4.49,4.13,6.93,5.83.79.55,1.62.98,2.43,1.47,1.73,1.05,3.48,2.03,5.3,2.84.98.44,1.99.81,3,1.17,1.76.64,3.53,1.18,5.35,1.61,1.04.24,2.09.49,3.15.66,1.93.32,3.87.48,5.82.56.9.04,1.79.14,2.69.12,3.65-.04,7.29-.54,10.88-1.39.78-.18,1.55-.42,2.31-.64,3.67-1.06,7.28-2.39,10.7-4.3,0,0,0,0,.01,0h0c-2.83,4.66-4.85,9.66-6.05,14.79-.6,2.57-.99,5.17-1.18,7.78-.74,10.43,1.84,20.96,7.84,29.88,1.5,2.24,3.21,4.37,5.14,6.37,2.14,2.22,4.49,4.13,6.93,5.84.78.54,1.62.97,2.43,1.46,1.72,1.06,3.47,2.03,5.3,2.85.98.43,1.98.8,2.99,1.17,1.76.64,3.54,1.17,5.36,1.6,1.04.25,2.09.49,3.14.66,1.93.32,3.87.48,5.83.56.9.04,1.79.14,2.69.13,3.65-.05,7.29-.54,10.89-1.4.77-.18,1.53-.42,2.29-.64,3.67-1.06,7.29-2.39,10.72-4.3-1.42,2.33-2.63,4.74-3.64,7.22C518.04,1564.48,516.84,1569.67,516.47,1574.88Z"/><path class="cls-3" d="M627.68,247.42c9.94-.71,19.94-1.24,30.07-1.24,228.59,0,413.91,185.32,413.91,413.91,0,142.47-71.99,268.13-181.57,342.59-66.24,45.01-66.86-27.73-152.98-27.73-16.77,0-83.99,51.37-132.2,82.46l.67.37c-.52.19-81.58,44.24-95,76.54-4.47,10.75-4.05,21.61,1.26,33.24,12.4,27.12,40.38,34.43,83.19,21.72,32.94-9.78,64.75-29.25,91.96-56.28,20.54-22.93,54.41-24.91,76.4-5.33l218.69,194.55c3.58,3.18,6.6,6.84,9.28,10.72,170.46-194.53,336.76-442.1,326.47-672.85-11.78-264.35-162.16-492.71-383.14-598.06-15.93-7.59-32.32-14.36-48.95-20.64-13.91,3.17-27.7,6.83-41.11,11.54-17.56,6.15-34.8,13.68-51.25,22.35C719.54,114.23,662.36,175.11,627.68,247.42Z"/><path class="cls-2" d="M323.43,1325.7l39.82-38.48c13.56-13.13,31.58-20.25,50.27-20.25s37.14,7.57,50.26,21.13c12.24,12.68,18.69,29.14,19.36,45.83,17.12,1.11,33.14,8.45,44.93,20.9,7.19,7.46,12.38,16.22,15.58,25.56,3.81,11.16,12.58,20.5,23.6,24.69,9.47,3.6,18.12,9.23,25.32,16.71,6.98,7.24,12.09,15.83,15.27,25.03,3.89,11.26,12.65,20.75,23.79,24.99,9.45,3.6,18.02,9.23,25.23,16.71,3.78,4,6.89,8.45,9.78,13.12l80.08,55.83c5.11,4.67,11.12,7.79,17.13,9.56,12.67,3.56,26.24,1.12,35.58-7.56.76-.69,2.78-2.64,5.83-5.6,18.34-17.83,18.7-47.32.67-65.45l-147.08-147.83,162.77,138.61c18.12,15.43,45.01,14.47,61.98-2.21.22-.21.43-.43.65-.64,18.21-17.9,18.32-47.22.26-65.26l-152.57-152.33,168.93,142.89c18.05,15.26,44.82,14.24,61.78-2.24,2.45-2.38,4.15-4.02,4.94-4.76,8.01-7.34,12.46-17.35,12.24-28.03,0-5.78-1.34-11.12-3.78-16.23-2.23-4.23-5.12-8.23-8.68-11.57l-218.87-194.63c-12.68-11.34-32.48-10.23-44.04,2.67l-1.78,2c-29.81,29.59-64.95,50.94-101.43,61.84-68.51,20.24-97.43-7.34-109.66-33.81-8.01-17.35-8.45-34.7-1.56-51.16,11.79-28.03,47.16-56.05,69.4-71.4.67-.45,1.11-.89,1.78-1.34,7.79-5.33,13.79-8.89,16.02-10.01.44-.44.88-.66,1.11-.66,22.24-15.35,72.95-42.26,69.84-43.6-71.4-33.36-184.4,46.71-244.23-11.56-88.3-86.31-160.15-194.19-160.15-326.98,0-159.04,89.64-297.17,221.1-366.35,17.79-9.56,36.48-17.57,55.83-24.46,2.75-.97,5.5-1.87,8.26-2.74,13.23-4.15,23.49-14.22,28.83-27.01,39.35-94.26,110.62-173.87,204.47-223.38,4-2.01,8.01-3.78,12.01-5.79C737.15,3.78,698.45.22,659.08,0,295.18.89,16.7,296.28.46,660.18c-10.23,228.44,152.81,473.56,321.41,667.07C322.54,1326.81,322.76,1326.14,323.43,1325.7Z"/><circle class="cls-3" cx="658.43" cy="658.89" r="170.52"/></g></g>
       </svg>
     </div>
     <div class="claim-barrio">Yo <span class="indigo">CR</span><span class="mint">EO</span> en mi barrio</div>
-    <p class="subtitle">Encuentra todo lo que buscas y compra a un clic directo por WhatsApp en los mejores negocios de Soacha Compartir sin intermediarios.</p>
+    <p class="subtitle">Conecta a un clic directo por WhatsApp con los mejores negocios de Soacha Compartir.</p>
 
+    <!-- 8 & 9. BOTONES DE REDES SOCIALES CON ICONOS Y COLORES CARACTERÍSTICOS + MI VITRINA DIGITAL -->
     <div class="creo-socials-bar">
-      <a href="https://instagram.com/redcreosoacha" target="_blank" class="creo-social-btn">Instagram</a>
-      <a href="https://facebook.com/redcreosoacha" target="_blank" class="creo-social-btn">Facebook</a>
-      <a href="https://tiktok.com/@redcreosoacha" target="_blank" class="creo-social-btn">TikTok</a>
+      <a href="https://www.instagram.com/redcreoco" target="_blank" rel="noopener noreferrer" class="creo-social-btn btn-brand-ig">
+        <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+        Instagram
+      </a>
+      <a href="https://www.facebook.com/redcreoco" target="_blank" rel="noopener noreferrer" class="creo-social-btn btn-brand-fb">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12c0-5.523-4.477-10-10-10z"/></svg>
+        Facebook
+      </a>
+      <a href="https://www.tiktok.com/@redcreoco" target="_blank" rel="noopener noreferrer" class="creo-social-btn btn-brand-tk">
+        <svg viewBox="0 0 24 24"><path d="M19.589 6.686a4.793 4.793 0 0 1-3.77-4.242V2h-3.445v13.672a2.896 2.896 0 0 1-5.01 1.963 2.877 2.877 0 0 1-.42-2.645 2.894 2.894 0 0 1 2.325-1.939v-3.48a6.375 6.375 0 0 0-5.82 6.34 6.362 6.362 0 0 0 6.54 6.36 6.336 6.336 0 0 0 6.17-5.116V9.582a8.212 8.212 0 0 0 4.89 1.55v-3.48a4.78 4.78 0 0 1-1.08-.966z"/></svg>
+        TikTok
+      </a>
+      <button type="button" onclick="abrirModalVitrinaDigital()" class="creo-social-btn btn-brand-vitrina">
+        🔐 Mi Vitrina Digital
+      </button>
     </div>
   </header>
 
   <section class="controls-container">
+    <!-- 3. CARRUSEL DE BANNERS RESPONSIVE SIN RECORTE EN CELULAR -->
     <div class="banner-carousel-wrapper" id="bannerCarousel">
-      <div class="banner-loader" id="bannerLoader">Cargando vitrina promocional de Soacha Compartir...</div>
-      <img id="carouselImg" referrerpolicy="no-referrer" alt="Promocion Red CREO">
+      <div class="banner-loader" id="bannerLoader">Cargando vitrina de ofertas...</div>
+      <img id="carouselImg" referrerpolicy="no-referrer" alt="Promoción Red CREO">
       <button class="banner-nav-btn banner-nav-prev" id="bannerPrev" onclick="cambiarBannerManual(-1)" title="Anterior">&lsaquo;</button>
       <button class="banner-nav-btn banner-nav-next" id="bannerNext" onclick="cambiarBannerManual(1)" title="Siguiente">&rsaquo;</button>
       <div class="banner-dots" id="bannerDots"></div>
     </div>
 
-    <input type="text" id="searchInput" class="search-box" placeholder="&#128269; &#191;Que buscas hoy? (Ej: Panaderia, Drogueria, Ferreteria, Almuerzos, ODEON...)" />
-    
-    <div class="categories-bar" id="categoryFilters">
-      <button class="cat-btn active" data-cat="TODOS">&#127760; Todos los Comercios</button>
-      <button class="cat-btn" data-cat="Restaurantes y Comidas Rapidas">&#127828; Restaurantes y Comidas</button>
-      <button class="cat-btn" data-cat="Tiendas y Supermercados">&#128722; Tiendas y Supermercados</button>
-      <button class="cat-btn" data-cat="Droguerias y Salud">&#128138; Droguerias y Salud</button>
-      <button class="cat-btn" data-cat="Ferreterias y Construccion">&#128296; Ferreterias y Construccion</button>
-      <button class="cat-btn" data-cat="Ropa y Calzado">&#128087; Ropa y Calzado</button>
-      <button class="cat-btn" data-cat="Panaderias y Cafes">&#129366; Panaderias y Cafes</button>
-      <button class="cat-btn" data-cat="Belleza y Estetica">&#128136; Belleza y Estetica</button>
-      <button class="cat-btn" data-cat="Talleres y Servicios">&#128295; Talleres y Servicios</button>
-      <button class="cat-btn" data-cat="Bares y Licores">&#127867; Bares y Licores</button>
+    <!-- 2 & 10. BUSCADOR + LISTADO DESPLEGABLE DE CATEGORÍAS + BOTÓN "MAPA DEL BARRIO" CON PIN FLOTANTE -->
+    <div class="controls-grid">
+      <div class="search-wrapper">
+        <div class="search-icon">🔍</div>
+        <input type="text" id="searchInput" class="search-box" placeholder="¿Qué buscas hoy? (Ej: Pizza, Calzado, Internet, Antotek, Movistar, ODEÓN...)" />
+      </div>
+
+      <div class="category-select-wrapper">
+        <select id="categorySelect" class="category-select">
+          <option value="TODOS">📂 Categorías: Todos los Comercios</option>
+          <option value="Restaurantes y Comidas Rápidas">🍔 Restaurantes y Comidas Rápidas</option>
+          <option value="Tiendas y Supermercados">🛒 Tiendas y Supermercados</option>
+          <option value="Droguerías y Salud">💊 Droguerías y Salud</option>
+          <option value="Ferreterías y Construcción">🔨 Ferreterías y Construcción</option>
+          <option value="Ropa y Calzado">👗 Ropa y Calzado</option>
+          <option value="Panaderías y Cafés">🥖 Panaderías y Cafés</option>
+          <option value="Belleza y Estética">💈 Belleza y Estética</option>
+          <option value="Talleres y Servicios">🔧 Talleres, Internet y Servicios</option>
+          <option value="Bares y Licores">🍻 Bares y Licores</option>
+        </select>
+        <span class="select-arrow">▼</span>
+      </div>
+
+      <button type="button" class="btn-mapa-barrio" onclick="toggleMapaBarrio()">
+        <img id="btnPinFloatingImg" class="pin-floating-icon" alt="Pin CREO" src="" />
+        <span>Mapa del Barrio</span>
+      </button>
+    </div>
+
+    <!-- 4 & 10. MAPA DEL BARRIO CON PINES PERSONALIZADOS DE RED CREO -->
+    <div class="map-interactive-panel" id="mapInteractivePanel">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <div>
+          <strong style="font-size:0.95rem; color:var(--mint);">📍 Mapa del Barrio — Comercios Oficiales Red CREO (Soacha Compartir)</strong>
+          <p style="font-size:0.75rem; color:var(--text-muted);">Toca cualquier Pin de CREO en el mapa o elige un negocio de la lista para ver sus sedes:</p>
+        </div>
+        <button onclick="toggleMapaBarrio()" style="background:rgba(255,255,255,0.08); border:none; color:#fff; padding:6px 12px; border-radius:8px; cursor:pointer; font-weight:800;">✕ Cerrar Mapa</button>
+      </div>
+      <div class="map-grid">
+        <div id="leafletMapBarrio"></div>
+        <div class="map-list-box" id="mapProximityList"></div>
+      </div>
     </div>
   </section>
 
   <main class="grid-container" id="directoryGrid">
-    <div class="status-msg">Cargando comercios de Compartir...</div>
+    <div class="status-msg">Cargando vitrinas digitales de Compartir...</div>
   </main>
 
+  <!-- 11. PUBLICIDAD INFERIOR DE CONVERSIÓN: "YO CREO EN TU NEGOCIO" -->
   <div style="padding: 0 20px;">
     <section class="cta-banner">
-      <h3>&#191;Tienes un negocio en Soacha Compartir?</h3>
-      <p>Entra GRATIS con el Plan Conecta (Nivel Cobre) en nuestra Fase 1 de lanzamiento hasta el 25 de noviembre y vende directo por WhatsApp.</p>
-      <a href="https://forms.gle/vbNKsd6NEVYFJRfi7" target="_blank" class="btn-join">Afiliar Mi Negocio &rarr;</a>
+      <div class="cta-Tag">Comercios en Red y Emprendedores Organizados</div>
+      <h3>Yo <span>CREO</span> en tu negocio</h3>
+      <p>¿Tienes un negocio o emprendimiento en el barrio? Inscríbete GRATIS hoy aquí en nuestra Fase 1 de lanzamiento, recibe tu sello oficial y vende directo a tu WhatsApp con 0% comisiones.</p>
+      <div style="display:flex; justify-content:center; gap:14px; flex-wrap:wrap;">
+        <a href="https://forms.gle/vbNKsd6NEVYFJRfi7" target="_blank" rel="noopener noreferrer" class="btn-join">🚀 Quiero afiliarme gratis aquí →</a>
+        <button type="button" onclick="abrirModalVitrinaDigital()" class="btn-join-secondary">🔐 Ya tengo una vitrina</button>
+      </div>
     </section>
   </div>
+
+  <!-- MODAL 1: ENLACE ÚNICO COMPARTIBLE DE LA VITRINA DIGITAL (BRANDING OFICIAL CREO) -->
+  <div class="modal-overlay" id="modalVitrinaUnica">
+    <div class="modal-box" style="max-width:500px; text-align:center;" id="vitrinaUnicaContent"></div>
+  </div>
+
+  <!-- MODAL 2: CALIFICAR COMERCIO CON ESTRELLAS -->
+  <div class="modal-overlay" id="modalCalificar">
+    <div class="modal-box">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <strong id="rateModalTitle" style="font-size:1.05rem; color:#fff;">Recomendar Comercio</strong>
+        <button onclick="cerrarModalCalificar()" style="background:none; border:none; color:var(--text-muted); font-size:1.1rem; cursor:pointer;">✕</button>
+      </div>
+      <form id="formCalificar">
+        <input type="hidden" id="rateComercioId" />
+        <div class="stars-picker" id="starsPicker">
+          <span class="star-pick active" onclick="setEstrellas(1)">★</span>
+          <span class="star-pick active" onclick="setEstrellas(2)">★</span>
+          <span class="star-pick active" onclick="setEstrellas(3)">★</span>
+          <span class="star-pick active" onclick="setEstrellas(4)">★</span>
+          <span class="star-pick active" onclick="setEstrellas(5)">★</span>
+        </div>
+        <input type="text" id="rateVecino" class="modal-input" required maxlength="35" placeholder="Tu Nombre (Vecino/Cliente)" />
+        <textarea id="rateComentario" class="modal-input" rows="2" required maxlength="140" placeholder="¿Qué recomiendas de este negocio?"></textarea>
+        <button type="submit" class="btn btn-wa" style="width:100%; padding:12px; font-size:0.85rem;">⭐ Publicar Calificación</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 3: "MI VITRINA DIGITAL" CON INICIO DE SESIÓN SEGURO AL CORREO REGISTRADO + MULTI-SEDES -->
+  <div class="modal-overlay" id="modalMiVitrina">
+    <div class="modal-box" style="max-width:560px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <strong style="font-size:1.1rem; color:var(--mint);">🔐 Mi Vitrina Digital — Acceso de Propietario</strong>
+        <button onclick="cerrarModalVitrinaDigital()" style="background:none; border:none; color:var(--text-muted); font-size:1.1rem; cursor:pointer;">✕</button>
+      </div>
+
+      <!-- PASO 1: LOGIN CON CORREO REGISTRADO Y CÉDULA/NIT -->
+      <div id="stepLoginCorreo">
+        <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:12px;">
+          Para evitar suplantaciones, solo el dueño del comercio (y la administración de Red CREO) puede editar su Vitrina Digital. Ingresa el <strong>Correo Electrónico</strong> y la <strong>Cédula o NIT</strong> que registraste en el formulario:
+        </p>
+        <form id="formSolicitarOtp">
+          <label style="font-size:0.73rem; color:#fff; font-weight:700;">Correo Electrónico Registrado en el Forms *</label>
+          <input type="email" id="loginEmail" class="modal-input" required placeholder="ejemplo@gmail.com" />
+          <label style="font-size:0.73rem; color:#fff; font-weight:700;">Cédula o NIT del Propietario *</label>
+          <input type="text" id="loginCedula" class="modal-input" required placeholder="Ej: 1032456789" />
+          <div id="loginMsgPaso1" style="font-size:0.76rem; margin-bottom:10px; display:none;"></div>
+          <button type="submit" class="btn btn-maps" style="width:100%; padding:12px; font-size:0.85rem;">📩 Enviar Código de Seguridad a mi Correo</button>
+        </form>
+      </div>
+
+      <!-- PASO 2: VERIFICAR CÓDIGO OTP DE 6 DÍGITOS -->
+      <div id="stepVerificarOtp" style="display:none;">
+        <p id="otpEnviadoTexto" style="font-size:0.8rem; color:var(--mint); margin-bottom:10px;"></p>
+        <form id="formVerificarOtp">
+          <label style="font-size:0.74rem; color:#fff; font-weight:700;">Código de 6 dígitos enviado a tu correo *</label>
+          <input type="text" id="inputCodigoOtp" class="modal-input" required maxlength="6" style="font-size:1.2rem; letter-spacing:5px; text-align:center; font-weight:900;" placeholder="000000" />
+          <div id="loginMsgPaso2" style="font-size:0.76rem; margin-bottom:10px; display:none;"></div>
+          <button type="submit" class="btn btn-wa" style="width:100%; padding:12px; font-size:0.85rem;">🔓 Desbloquear Mi Vitrina Digital</button>
+        </form>
+      </div>
+
+      <!-- PASO 3: EDICIÓN DE "MI VITRINA DIGITAL" + SEDES ADICIONALES -->
+      <div id="stepEditarVitrina" style="display:none;">
+        <p style="font-size:0.76rem; color:var(--text-muted); margin-bottom:10px;">
+          Edita los datos de tu Vitrina Digital o añade todas las sedes de tu negocio en el barrio:
+        </p>
+        <form id="formGuardarVitrina">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div>
+              <label style="font-size:0.7rem; color:var(--text-muted);">Nombre del Negocio</label>
+              <input type="text" id="editNombre" class="modal-input" required />
+            </div>
+            <div>
+              <label style="font-size:0.7rem; color:var(--text-muted);">WhatsApp de Ventas</label>
+              <input type="tel" id="editWsp" class="modal-input" required />
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div>
+              <label style="font-size:0.7rem; color:var(--text-muted);">Dirección Sede Principal</label>
+              <input type="text" id="editDireccion" class="modal-input" required />
+            </div>
+            <div>
+              <label style="font-size:0.7rem; color:var(--text-muted);">Horario de Atención</label>
+              <input type="text" id="editHorario" class="modal-input" required />
+            </div>
+          </div>
+          <label style="font-size:0.7rem; color:var(--text-muted);">Link Google Maps Sede Principal</label>
+          <input type="text" id="editMaps" class="modal-input" placeholder="https://maps.google.com/..." />
+
+          <!-- GESTOR DE MÚLTIPLES SEDES EN EL MISMO BARRIO -->
+          <div style="background:#09090d; border:1px solid rgba(99,102,241,0.4); border-radius:12px; padding:12px; margin-bottom:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <strong style="font-size:0.76rem; color:var(--mint);">🏪 Sedes Adicionales en el Barrio</strong>
+              <button type="button" onclick="agregarFilaSedeUI('', '', '')" style="background:var(--indigo); color:#fff; border:none; border-radius:6px; padding:3px 9px; font-size:0.7rem; font-weight:800; cursor:pointer;">+ Añadir Sede</button>
+            </div>
+            <div id="contenedorSedesInputs" style="display:flex; flex-direction:column; gap:6px;"></div>
+          </div>
+
+          <label style="font-size:0.7rem; color:var(--text-muted);">Descripción de Productos y Servicios (SEO)</label>
+          <input type="text" id="editDescripcion" class="modal-input" maxlength="150" />
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <input type="text" id="editIg" class="modal-input" placeholder="Instagram" />
+            <input type="text" id="editFb" class="modal-input" placeholder="Facebook" />
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <input type="text" id="editTk" class="modal-input" placeholder="TikTok" />
+            <input type="text" id="editWeb" class="modal-input" placeholder="Sitio Web Oficial" />
+          </div>
+
+          <div style="background:#09090d; border:1px solid var(--border-glass); border-radius:12px; padding:10px; margin-bottom:12px;">
+            <label style="font-size:0.72rem; color:var(--mint); font-weight:800; display:block;">🖼️ Actualizar Logo Cuadrado 1:1 (Prohibido subir flyers con precios)</label>
+            <input type="file" id="editLogoFile" accept="image/png,image/jpeg,image/webp" style="font-size:0.72rem; color:var(--text-muted); margin-top:6px; width:100%;" />
+          </div>
+
+          <div id="editStatusMsg" style="font-size:0.78rem; margin-bottom:10px; display:none;"></div>
+          <button type="submit" class="btn btn-maps" style="width:100%; padding:12px; font-size:0.85rem;">💾 Guardar Cambios en Mi Vitrina Digital</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <canvas id="canvasCropLogo" width="400" height="400" style="display:none;"></canvas>
+
+  <footer>
+    <div><strong>CREO - Directorio Comercial Oficial</strong> &bull; Yo CREO en mi barrio (Soacha Compartir)</div>
+    <div style="display:flex; gap:14px;">
+      <a href="https://www.instagram.com/redcreoco" target="_blank" rel="noopener noreferrer" style="color:var(--mint); text-decoration:none; font-weight:700;">@redcreoco</a>
+    </div>
+  </footer>
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbwfwXJDK-8yz-d2i9SZ1Xu1mI9doqtOMpkSnZUDJxynarj9LJOeymwaxHWRkhf98Z3YmQ/exec";
 
+    // Pin 3D SVG de respaldo automático mientras carga o se sube el archivo 'PIN 3D' en Drive
+    const FALLBACK_PIN_3D_SVG = "data:image/svg+xml;utf8," + encodeURIComponent(`
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 140">
+        <defs>
+          <linearGradient id="gInd" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#818cf8"/><stop offset="100%" stop-color="#4f46e5"/></linearGradient>
+          <linearGradient id="gMint" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6ee7b7"/><stop offset="100%" stop-color="#10b981"/></linearGradient>
+        </defs>
+        <path d="M60 8 C28 8 8 32 8 62 C8 95 48 128 60 136 C32 95 26 42 60 8 Z" fill="url(#gInd)"/>
+        <path d="M60 8 C92 8 112 32 112 62 C112 95 72 128 60 136 C88 95 94 42 60 8 Z" fill="url(#gMint)"/>
+        <circle cx="60" cy="58" r="24" fill="#08080a"/>
+        <circle cx="60" cy="58" r="13" fill="#4ecca3"/>
+      </svg>
+    `);
+
     let allComercios = [];
     let bannerImages = [];
+    let pin3dOficialUrl = FALLBACK_PIN_3D_SVG;
     let currentCategory = "TODOS";
     let currentImgIdx = 0;
     let bannerInterval = null;
+    let selectedStars = 5;
+    let logoRecortadoBase64 = "";
+    let sesionVitrinaId = "";
+    let sesionVitrinaToken = "";
+    let leafletMap = null;
+    let leafletMarkers = [];
+
+    document.getElementById('btnPinFloatingImg').src = FALLBACK_PIN_3D_SVG;
 
     function limpiarTexto(txt) {
-      return String(txt || '')
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase()
-        .trim();
+      return String(txt || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
     }
 
     async function fetchComercios() {
       try {
         const res = await fetch(API_URL + "?nocache=" + new Date().getTime());
         const json = await res.json();
-        
         allComercios = Array.isArray(json) ? json : (json.comercios || []);
-        
-        if (json && !Array.isArray(json) && Array.isArray(json.banners) && json.banners.length > 0) {
+        if (json && json.pin3dUrl) {
+          pin3dOficialUrl = json.pin3dUrl;
+          document.getElementById('btnPinFloatingImg').src = pin3dOficialUrl;
+        }
+        if (json && Array.isArray(json.banners) && json.banners.length > 0) {
           bannerImages = json.banners;
           currentImgIdx = 0;
           initBannerCarousel();
         }
-        
         filtrarComercios();
+        verificarEnlaceUnicoVitrina();
       } catch (err) {
-        document.getElementById('directoryGrid').innerHTML = '<div class="status-msg">Error cargando los comercios. Recarga la pagina con Ctrl + F5.</div>';
+        document.getElementById('directoryGrid').innerHTML = '<div class="status-msg">Error cargando vitrinas. Recarga con Ctrl + F5.</div>';
       }
     }
 
+    // CARRUSEL DE BANNERS
     function renderDots() {
       const dotsContainer = document.getElementById('bannerDots');
       const prevBtn = document.getElementById('bannerPrev');
       const nextBtn = document.getElementById('bannerNext');
-      if (!dotsContainer) return;
-
       if (bannerImages.length <= 1) {
         dotsContainer.style.display = 'none';
-        if (prevBtn) prevBtn.style.display = 'none';
-        if (nextBtn) nextBtn.style.display = 'none';
+        prevBtn.style.display = 'none';
+        nextBtn.style.display = 'none';
         return;
       }
-
       dotsContainer.style.display = 'flex';
-      if (prevBtn) prevBtn.style.display = 'flex';
-      if (nextBtn) nextBtn.style.display = 'flex';
-
-      dotsContainer.innerHTML = bannerImages.map((_, idx) => 
+      prevBtn.style.display = 'flex';
+      nextBtn.style.display = 'flex';
+      dotsContainer.innerHTML = bannerImages.map((_, idx) =>
         `<span class="banner-dot ${idx === currentImgIdx ? 'active' : ''}" onclick="irABanner(${idx})"></span>`
       ).join('');
     }
 
     window.irABanner = function(idx) {
-      if (idx < 0 || idx >= bannerImages.length) return;
       currentImgIdx = idx;
       mostrarBannerActual();
       reiniciarTemporizadorBanner();
     };
-
     window.cambiarBannerManual = function(dir) {
       if (bannerImages.length <= 1) return;
       currentImgIdx = (currentImgIdx + dir + bannerImages.length) % bannerImages.length;
       mostrarBannerActual();
       reiniciarTemporizadorBanner();
     };
-
     function mostrarBannerActual() {
       const imgEl = document.getElementById('carouselImg');
       const loaderEl = document.getElementById('bannerLoader');
       if (!imgEl || !bannerImages[currentImgIdx]) return;
-      
       const targetUrl = bannerImages[currentImgIdx];
       const tempImg = new Image();
       tempImg.referrerPolicy = "no-referrer";
-      
       tempImg.onload = function() {
         if (loaderEl) loaderEl.style.display = 'none';
         imgEl.style.display = 'block';
-        imgEl.style.opacity = '0';
-        setTimeout(() => {
-          imgEl.src = targetUrl;
-          imgEl.style.opacity = '1';
-          renderDots();
-        }, 180);
+        imgEl.src = targetUrl;
+        renderDots();
       };
-      
-      tempImg.onerror = function() {
-        if (bannerImages.length > 1) {
-          bannerImages.splice(currentImgIdx, 1);
-          if (bannerImages.length > 0) {
-            currentImgIdx = currentImgIdx % bannerImages.length;
-            mostrarBannerActual();
-          }
-        }
-      };
-      
       tempImg.src = targetUrl;
     }
-
     function reiniciarTemporizadorBanner() {
       if (bannerInterval) clearInterval(bannerInterval);
-      if (bannerImages.length > 1) {
-        bannerInterval = setInterval(rotateBanner, 4000);
-      }
+      if (bannerImages.length > 1) bannerInterval = setInterval(() => cambiarBannerManual(1), 4500);
     }
-
     function initBannerCarousel() {
-      if (!bannerImages || bannerImages.length === 0) return;
       mostrarBannerActual();
       reiniciarTemporizadorBanner();
     }
 
-    function rotateBanner() {
-      if (bannerImages.length <= 1) return;
-      currentImgIdx = (currentImgIdx + 1) % bannerImages.length;
-      mostrarBannerActual();
+    // 4 & 10. MAPA DEL BARRIO CON PINES DE CREO EN CADA NEGOCIO AFILIADO Y SUS SEDES
+    function extraerCoordenadasOSimular(linkMaps, direccion, idxSeed) {
+      const str = String(linkMaps || '') + ' ' + String(direccion || '');
+      const matchCoords = str.match(/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/);
+      if (matchCoords) {
+        return [parseFloat(matchCoords[1]), parseFloat(matchCoords[2])];
+      }
+      // Coordenadas base de Soacha Compartir (Comuna 1: Lat ~4.5715, Lng ~-74.2365) con offset determinístico por dirección
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) hash = ((hash << 5) - hash) + str.charCodeAt(i);
+      const latOffset = ((Math.abs(hash) % 70) - 35) * 0.00011;
+      const lngOffset = (((Math.abs(hash >> 3) + idxSeed * 19) % 70) - 35) * 0.00011;
+      return [4.5715 + latOffset, -74.2365 + lngOffset];
     }
 
-    const carouselWrapper = document.getElementById('bannerCarousel');
-    if (carouselWrapper) {
-      carouselWrapper.addEventListener('mouseenter', () => { if (bannerInterval) clearInterval(bannerInterval); });
-      carouselWrapper.addEventListener('mouseleave', () => { reiniciarTemporizadorBanner(); });
-    }
-
-    window.cambiarFotoCard = function(cardId, direccion, totalFotos) {
-      if(!window.cardIndices) window.cardIndices = {};
-      if(window.cardIndices[cardId] === undefined) window.cardIndices[cardId] = 0;
-      
-      window.cardIndices[cardId] = (window.cardIndices[cardId] + direccion + totalFotos) % totalFotos;
-      let idx = window.cardIndices[cardId];
-      
-      let imgEl = document.getElementById('img-card-' + cardId);
-      let arrFotos = JSON.parse(imgEl.getAttribute('data-fotos'));
-      imgEl.src = arrFotos[idx];
+    window.toggleMapaBarrio = function() {
+      const panel = document.getElementById('mapInteractivePanel');
+      panel.classList.toggle('open');
+      if (panel.classList.contains('open')) {
+        setTimeout(() => {
+          inicializarOAjustarMapaLeaflet(allComercios);
+        }, 120);
+      }
     };
 
-    function renderCards(comerciosAMostrar = null, isSimilarSearch = false) {
+    function inicializarOAjustarMapaLeaflet(listaComercios) {
+      if (!leafletMap) {
+        leafletMap = L.map('leafletMapBarrio').setView([4.5715, -74.2365], 16);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+          attribution: '&copy; Red CREO Soacha Compartir'
+        }).addTo(leafletMap);
+      }
+      leafletMap.invalidateSize();
+      leafletMarkers.forEach(m => leafletMap.removeLayer(m));
+      leafletMarkers = [];
+
+      const iconoPinCreo = L.icon({
+        iconUrl: pin3dOficialUrl,
+        iconSize: [42, 46],
+        iconAnchor: [21, 44],
+        popupAnchor: [0, -40],
+        className: 'creo-custom-marker'
+      });
+
+      const mapList = document.getElementById('mapProximityList');
+      let htmlList = '';
+
+      listaComercios.forEach((c, idx) => {
+        const todasLasSedes = [
+          { nombreSede: 'Sede Principal', direccion: c.direccion, maps: c.maps },
+          ...(Array.isArray(c.sedes) ? c.sedes : [])
+        ];
+
+        todasLasSedes.forEach((sede, sIdx) => {
+          const coords = extraerCoordenadasOSimular(sede.maps, sede.direccion, idx + sIdx);
+          const marker = L.marker(coords, { icon: iconoPinCreo }).addTo(leafletMap);
+          marker.bindPopup(`
+            <div style="text-align:center; min-width:170px; color:#0f172a; font-family:'Plus Jakarta Sans',sans-serif;">
+              <strong style="font-size:0.88rem; display:block;">${c.nombre}</strong>
+              <span style="font-size:0.72rem; color:#4f46e5; font-weight:800;">${sede.nombreSede || 'Sede Oficial'}</span>
+              <p style="font-size:0.74rem; margin:4px 0;">📍 ${sede.direccion}</p>
+              <a href="${c.whatsappUrl}" target="_blank" style="display:inline-block; background:#22c55e; color:#052e16; font-weight:800; font-size:0.72rem; padding:4px 10px; border-radius:6px; text-decoration:none; margin-top:4px;">WhatsApp</a>
+              <a href="${sede.maps || c.maps}" target="_blank" style="display:inline-block; background:#6366f1; color:#fff; font-weight:800; font-size:0.72rem; padding:4px 10px; border-radius:6px; text-decoration:none; margin-top:4px;">Ruta GPS</a>
+            </div>
+          `);
+          leafletMarkers.push(marker);
+
+          htmlList += `
+            <button type="button" class="map-item-btn" onclick="centrarPinEnMapa(${coords[0]}, ${coords[1]})">
+              <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:800;">
+                <span>${c.nombre} ${todasLasSedes.length > 1 ? '(' + (sede.nombreSede || 'Sede') + ')' : ''}</span>
+                <span style="color:#fbbf24;">★ ${c.calificacion || '5.0'}</span>
+              </div>
+              <div style="font-size:0.72rem; color:var(--text-muted);">📍 ${sede.direccion}</div>
+            </button>`;
+        });
+      });
+
+      if (mapList) mapList.innerHTML = htmlList;
+    }
+
+    window.centrarPinEnMapa = function(lat, lng) {
+      if (!leafletMap) return;
+      leafletMap.setView([lat, lng], 18);
+    };
+
+    // CAMBIO DE SEDE EN LA TARJETA
+    window.cambiarSedeEnTarjeta = function(cardId, selectEl) {
+      const opt = selectEl.options[selectEl.selectedIndex];
+      const dir = opt.getAttribute('data-dir');
+      const maps = opt.getAttribute('data-maps');
+      const dirEl = document.getElementById('dir-text-' + cardId);
+      const mapsBtn = document.getElementById('maps-btn-' + cardId);
+      if (dirEl && dir) dirEl.textContent = dir;
+      if (mapsBtn && maps) mapsBtn.href = maps;
+    };
+
+    // 7. ENLACE ÚNICO DE CADA VITRINA CON BRANDING OFICIAL DE CREO
+    window.abrirVitrinaUnica = function(idComercio) {
+      const c = allComercios.find(x => x.id === idComercio);
+      if (!c) return;
+      const urlUnica = window.location.origin + window.location.pathname + '?vitrina=' + encodeURIComponent(c.id);
+      const logoSvgHtml = document.getElementById('mainCreoLogo').innerHTML;
+      const todasSedes = [{ nombreSede: 'Sede Principal', direccion: c.direccion, maps: c.maps }, ...(c.sedes || [])];
+
+      const box = document.getElementById('vitrinaUnicaContent');
+      box.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <span style="background:rgba(78,204,163,0.15); border:1px solid var(--mint); color:var(--mint); font-size:0.68rem; font-weight:900; padding:4px 12px; border-radius:999px;">
+            ✓ COMERCIO OFICIAL VERIFICADO RED CREO
+          </span>
+          <button onclick="cerrarVitrinaUnica()" style="background:none; border:none; color:#fff; font-size:1.2rem; cursor:pointer;">✕</button>
+        </div>
+        <div style="max-width:150px; margin:0 auto 10px;">${logoSvgHtml}</div>
+        <div style="width:160px; height:160px; margin:0 auto 12px; border-radius:20px; overflow:hidden; border:2px solid var(--mint); background:#09090d;">
+          <img src="${c.fotos[0]}" style="width:100%; height:100%; object-fit:contain;" alt="${c.nombre}" />
+        </div>
+        <div style="font-size:0.72rem; font-weight:800; color:var(--mint); text-transform:uppercase;">${c.categoria} &bull; ★ ${c.calificacion || '5.0'}</div>
+        <h2 style="font-size:1.45rem; font-weight:900; color:#fff; margin:4px 0;">${c.nombre}</h2>
+        <p style="font-size:0.82rem; color:var(--text-muted); margin-bottom:10px;">${c.descripcion || 'Comercio Oficial afiliado a Red CREO en Soacha Compartir.'}</p>
+        <div style="text-align:left; background:#09090d; padding:12px; border-radius:14px; border:1px solid var(--border-glass); margin-bottom:14px; font-size:0.78rem;">
+          <strong style="color:var(--mint); display:block; margin-bottom:4px;">📍 Ubicaciones / Sedes en el Barrio:</strong>
+          ${todasSedes.map(s => `<div style="margin-bottom:4px;">&bull; <strong>${s.nombreSede || 'Sede'}:</strong> ${s.direccion} <a href="${s.maps}" target="_blank" style="color:var(--indigo); font-weight:800;">[Ver Ruta]</a></div>`).join('')}
+          <div style="margin-top:6px; color:var(--text-muted);">🕒 Horario: ${c.horario}</div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+          <a href="${c.whatsappUrl}" target="_blank" class="btn btn-wa" style="padding:12px;">💬 Pedir por WhatsApp</a>
+          <button type="button" onclick="copiarLinkVitrina('${urlUnica}')" class="btn btn-maps" style="padding:12px;">🔗 Copiar Link Único</button>
+        </div>
+        <div id="copyToastMsg" style="font-size:0.75rem; color:var(--mint); font-weight:800; display:none; margin-top:6px;">✅ ¡Enlace único copiado para compartir en tus redes!</div>
+      `;
+      document.getElementById('modalVitrinaUnica').classList.add('open');
+    };
+
+    window.cerrarVitrinaUnica = function() {
+      document.getElementById('modalVitrinaUnica').classList.remove('open');
+    };
+
+    window.copiarLinkVitrina = function(url) {
+      navigator.clipboard.writeText(url);
+      const toast = document.getElementById('copyToastMsg');
+      if (toast) toast.style.display = 'block';
+    };
+
+    function verificarEnlaceUnicoVitrina() {
+      const params = new URLSearchParams(window.location.search);
+      const idVitrina = params.get('vitrina');
+      if (idVitrina) abrirVitrinaUnica(idVitrina.trim().toUpperCase());
+    }
+
+    function renderCards(comerciosAMostrar = null) {
       const grid = document.getElementById('directoryGrid');
       const lista = comerciosAMostrar || allComercios;
 
       if (!lista || lista.length === 0) {
-        grid.innerHTML = '<div class="status-msg">No hay comercios en esta categoria por el momento.</div>';
+        grid.innerHTML = '<div class="status-msg">No se encontraron vitrinas en esta categoría.</div>';
         return;
       }
 
       const svgFb = '<svg viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12c0-5.523-4.477-10-10-10z"/></svg>';
       const svgIg = '<svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>';
       const svgTk = '<svg viewBox="0 0 24 24"><path d="M19.589 6.686a4.793 4.793 0 0 1-3.77-4.242V2h-3.445v13.672a2.896 2.896 0 0 1-5.01 1.963 2.877 2.877 0 0 1-.42-2.645 2.894 2.894 0 0 1 2.325-1.939v-3.48a6.375 6.375 0 0 0-5.82 6.34 6.362 6.362 0 0 0 6.54 6.36 6.336 6.336 0 0 0 6.17-5.116V9.582a8.212 8.212 0 0 0 4.89 1.55v-3.48a4.78 4.78 0 0 1-1.08-.966z"/></svg>';
-      const svgWeb = '<svg viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12c0 5.523 4.477 10 10 10s10-4.477 10-10c0-5.523-4.477-10-10-10zm7.93 6h-3.18a15.82 15.82 0 0 0-1.54-3.63A8.032 8.032 0 0 1 19.93 8zM12 4.09c1.51 1.83 2.51 4.14 2.79 6.91H9.21c.28-2.77 1.28-5.08 2.79-6.91zM4.07 14h3.18c.28 1.27.77 2.49 1.54 3.63A8.032 8.032 0 0 1 4.07 14zm0-4h3.18c-.28-1.27-.77-2.49-1.54-3.63A8.032 8.032 0 0 1 4.07 10zm3.32-5.63c.77 1.14 1.26 2.36 1.54 3.63h3.18a15.82 15.82 0 0 0-1.54-3.63 8.032 8.032 0 0 1-3.18 0zm6.93 11.26c-.77-1.14-1.26-2.36-1.54-3.63h-3.18c.28 1.27.77 2.49 1.54 3.63a8.032 8.032 0 0 1 3.18 0zm1.54 1.54a15.82 15.82 0 0 0 1.54-3.63h3.18a8.032 8.032 0 0 1-4.72 3.63z"/></svg>';
+      const svgWeb = '<svg viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12c0 5.523 4.477 10 10 10s10-4.477 10-10c0-5.523-4.477-10-10-10z"/></svg>';
+      const svgWa = '<svg viewBox="0 0 24 24"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2z"/></svg>';
+      const svgMapPin = '<svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>';
 
-      let headerMsg = isSimilarSearch ? '<div class="similar-suggestion">&#128269; No encontramos coincidencia exacta, pero te recomendamos estos comercios similares:</div>' : '';
-
-      grid.innerHTML = headerMsg + lista.map(c => {
+      grid.innerHTML = lista.map(c => {
         let fotosArr = c.fotos && c.fotos.length > 0 ? c.fotos : ['https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=800&q=80'];
-        let tieneMultiplesFotos = fotosArr.length > 1;
         let urlFotoPrincipal = fotosArr[0];
-
         let plan = c.planActivo || 'Gris';
         let planClass = 'plan-' + plan;
-        let badgeHtml = '';
-        
-        // Sellos oficiales exactos del Ecosistema Red CREO
-        if (plan === 'Gris') badgeHtml = '<div class="badge-plan badge-Gris">Comercio Inactivo</div>';
-        else if (plan === 'Cobre') badgeHtml = '<div class="badge-plan badge-Cobre">Comercio Activo</div>';
-        else if (plan === 'Silver') badgeHtml = '<div class="badge-plan badge-Silver">Comercio Verificado CREO</div>';
-        else if (plan === 'Dorado') badgeHtml = '<div class="badge-plan badge-Dorado">&#128081; Aliado VIP</div>';
+        let titlePremiumText = plan === 'Dorado' ? 'ALIADO VIP' : (plan === 'Silver' ? 'VERIFICADO CREO' : (plan === 'Cobre' ? 'COMERCIO ACTIVO' : 'COMERCIO INACTIVO'));
 
-        // Sitio Web: visible si el cliente tiene URL registrada (funcional a un clic en Silver y Dorado; bloqueado por CSS en Gris y Cobre)
-        let tieneUrlWeb = c.sitioweb && c.sitioweb.length > 5;
+        let tieneUrlWeb = c.sitioweb && c.sitioweb.startsWith('https://');
+        let sedesExtra = Array.isArray(c.sedes) ? c.sedes : [];
+        let tieneMultiSedes = sedesExtra.length > 0;
 
         return `
         <div class="card ${planClass}">
-          ${badgeHtml}
-          <div class="card-img-wrapper">
-            <img class="card-img" referrerpolicy="no-referrer" id="img-card-${c.id || Math.random()}" src="${urlFotoPrincipal}" data-fotos='${JSON.stringify(fotosArr)}' alt="${c.nombre}" onerror="this.src='https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80'">
-            
-            ${tieneMultiplesFotos ? `
-              <button onclick="cambiarFotoCard('${c.id}', -1, ${fotosArr.length})" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); background:rgba(0,0,0,0.7); color:#fff; border:none; border-radius:50%; width:30px; height:30px; cursor:pointer; font-weight:bold; z-index:6; display:flex; align-items:center; justify-content:center;">&lsaquo;</button>
-              <button onclick="cambiarFotoCard('${c.id}', 1, ${fotosArr.length})" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:rgba(0,0,0,0.7); color:#fff; border:none; border-radius:50%; width:30px; height:30px; cursor:pointer; font-weight:bold; z-index:6; display:flex; align-items:center; justify-content:center;">&rsaquo;</button>
-            ` : ''}
-
-            <div class="card-socials">
+          <div class="plan-title-premium">${titlePremiumText}</div>
+          <button type="button" class="btn-share-vitrina" onclick="abrirVitrinaUnica('${c.id}')">🔗 Compartir Vitrina</button>
+          <div class="card-img-wrapper" onclick="abrirVitrinaUnica('${c.id}')">
+            <img class="card-img" loading="lazy" referrerpolicy="no-referrer" src="${urlFotoPrincipal}" alt="${c.nombre}" onerror="this.src='https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80'">
+            <div class="card-socials" onclick="event.stopPropagation()">
               ${tieneUrlWeb ? `<a href="${c.sitioweb}" target="_blank" class="social-icon" title="Sitio Web Oficial">${svgWeb}</a>` : ''}
               ${c.facebook ? `<a href="${c.facebook}" target="_blank" class="social-icon" title="Facebook">${svgFb}</a>` : ''}
               ${c.instagram ? `<a href="${c.instagram}" target="_blank" class="social-icon" title="Instagram">${svgIg}</a>` : ''}
@@ -720,62 +931,241 @@
             </div>
           </div>
           <div class="card-body">
-            <div class="card-category-badge">${c.categoria || 'Comercio'}</div>
-            <h3 class="card-title">${c.nombre}</h3>
-            <p class="card-info">&#128205; ${c.direccion}</p>
-            <p class="card-info">&#9200; ${c.horario}</p>
-            ${tieneUrlWeb ? `<a href="${c.sitioweb}" target="_blank" class="btn-web-pro">&#127760; Visitar Sitio Web Oficial</a>` : ''}
+            <div class="card-top-meta">
+              <div class="card-category-badge">${c.categoria || 'Comercio'}</div>
+              <div class="rating-bar">
+                <span>★ ${c.calificacion || '5.0'} (${c.votos || 1})</span>
+                <button type="button" class="btn-rate-mini" onclick="abrirModalCalificar('${c.id}', '${(c.nombre || '').replace(/'/g, "\\'")}')">Calificar</button>
+              </div>
+            </div>
+            <h3 class="card-title" onclick="abrirVitrinaUnica('${c.id}')">${c.nombre}</h3>
+
+            ${tieneMultiSedes ? `
+              <div class="sedes-box">
+                <strong style="color:var(--mint);">🏪 Este negocio tiene ${sedesExtra.length + 1} sedes en el barrio:</strong>
+                <select class="sedes-select" onchange="cambiarSedeEnTarjeta('${c.id}', this)">
+                  <option value="0" data-dir="${c.direccion}" data-maps="${c.maps}">Sede Principal: ${c.direccion}</option>
+                  ${sedesExtra.map((s, idx) => `<option value="${idx + 1}" data-dir="${s.direccion}" data-maps="${s.maps || c.maps}">${s.nombreSede || ('Sede ' + (idx + 2))}: ${s.direccion}</option>`).join('')}
+                </select>
+              </div>
+            ` : ''}
+
+            <p class="card-info">${svgMapPin} <span id="dir-text-${c.id}">${c.direccion}</span></p>
+            <p class="card-info">🕒 ${c.horario}</p>
+            ${tieneUrlWeb ? `<a href="${c.sitioweb}" target="_blank" class="btn-web-pro-custom">${svgWeb} Visitar Sitio Web Oficial</a>` : ''}
             <div class="card-actions">
-              <a href="${c.whatsappUrl}" target="_blank" class="btn btn-wa">WhatsApp</a>
-              <a href="${c.maps}" target="_blank" class="btn btn-maps">Como Llegar</a>
+              <a href="${c.whatsappUrl}" target="_blank" class="btn btn-wa">${svgWa} WhatsApp</a>
+              <a id="maps-btn-${c.id}" href="${c.maps}" target="_blank" class="btn btn-maps">${svgMapPin} Cómo Llegar</a>
             </div>
           </div>
-        </div>
-      `;}).join('');
+        </div>`;
+      }).join('');
     }
 
-    document.getElementById('categoryFilters').addEventListener('click', (e) => {
-      if (!e.target.classList.contains('cat-btn')) return;
-      document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-      e.target.classList.add('active');
-      currentCategory = e.target.getAttribute('data-cat');
-      document.getElementById('searchInput').value = '';
+    // EVENTO DEL DESPLEGABLE DE CATEGORÍAS Y BUSCADOR
+    document.getElementById('categorySelect').addEventListener('change', (e) => {
+      currentCategory = e.target.value;
       filtrarComercios();
     });
-
-    document.getElementById('searchInput').addEventListener('input', () => {
-      filtrarComercios();
-    });
+    document.getElementById('searchInput').addEventListener('input', filtrarComercios);
 
     function filtrarComercios() {
       const query = limpiarTexto(document.getElementById('searchInput').value);
-      
       let filtrados = allComercios.filter(c => {
         const matchCat = (currentCategory === 'TODOS' || limpiarTexto(c.categoria) === limpiarTexto(currentCategory));
-        const matchQuery = !query || 
-          limpiarTexto(c.nombre).includes(query) || 
-          limpiarTexto(c.direccion).includes(query) || 
-          limpiarTexto(c.categoria).includes(query);
-        return matchCat && matchQuery;
+        const bolsa = limpiarTexto(`${c.nombre} ${c.direccion} ${c.categoria} ${c.descripcion || ''}`);
+        return matchCat && (!query || bolsa.includes(query));
       });
 
       const order = { 'Dorado': 1, 'Silver': 2, 'Cobre': 3, 'Gris': 4 };
       filtrados.sort((a, b) => (order[a.planActivo] || 4) - (order[b.planActivo] || 4));
-
-      if (filtrados.length === 0 && query.length > 2) {
-        const similares = allComercios.filter(c => 
-          limpiarTexto(c.categoria).includes(query) || query.includes(limpiarTexto(c.categoria))
-        );
-        similares.sort((a, b) => (order[a.planActivo] || 4) - (order[b.planActivo] || 4));
-        
-        if (similares.length > 0) {
-          renderCards(similares, true);
-          return;
-        }
+      renderCards(filtrados);
+      if (leafletMap && document.getElementById('mapInteractivePanel').classList.contains('open')) {
+        inicializarOAjustarMapaLeaflet(filtrados);
       }
-
-      renderCards(filtrados, false);
     }
+
+    // ESTRELLAS
+    window.abrirModalCalificar = function(id, nombre) {
+      document.getElementById('rateComercioId').value = id;
+      document.getElementById('rateModalTitle').textContent = 'Calificar a ' + nombre;
+      setEstrellas(5);
+      document.getElementById('modalCalificar').classList.add('open');
+    };
+    window.cerrarModalCalificar = function() { document.getElementById('modalCalificar').classList.remove('open'); };
+    window.setEstrellas = function(n) {
+      selectedStars = n;
+      document.querySelectorAll('#starsPicker .star-pick').forEach((el, i) => el.classList.toggle('active', i < n));
+    };
+    document.getElementById('formCalificar').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const idCom = document.getElementById('rateComercioId').value;
+      const vecino = document.getElementById('rateVecino').value;
+      const comentario = document.getElementById('rateComentario').value;
+      cerrarModalCalificar();
+      fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ accion: 'CALIFICAR', idComercio: idCom, estrellas: selectedStars, vecino, comentario }) });
+    });
+
+    // 5, 6 & 9. FLUJO DE LOGIN SEGURO POR CORREO Y EDICIÓN DE "MI VITRINA DIGITAL" CON SEDES
+    window.abrirModalVitrinaDigital = function() {
+      document.getElementById('stepLoginCorreo').style.display = 'block';
+      document.getElementById('stepVerificarOtp').style.display = 'none';
+      document.getElementById('stepEditarVitrina').style.display = 'none';
+      document.getElementById('modalMiVitrina').classList.add('open');
+    };
+    window.cerrarModalVitrinaDigital = function() {
+      document.getElementById('modalMiVitrina').classList.remove('open');
+    };
+
+    document.getElementById('formSolicitarOtp').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msgEl = document.getElementById('loginMsgPaso1');
+      msgEl.style.display = 'block';
+      msgEl.style.color = '#4ecca3';
+      msgEl.textContent = '⏳ Verificando correo registrado y enviando código de seguridad...';
+
+      try {
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            accion: 'SOLICITAR_CODIGO_VITRINA',
+            email: document.getElementById('loginEmail').value,
+            cedula: document.getElementById('loginCedula').value
+          })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          sesionVitrinaId = data.idComercio;
+          document.getElementById('stepLoginCorreo').style.display = 'none';
+          document.getElementById('stepVerificarOtp').style.display = 'block';
+          document.getElementById('otpEnviadoTexto').textContent = '✅ ' + data.msg;
+        } else {
+          msgEl.style.color = '#f87171';
+          msgEl.textContent = '⚠️ ' + data.msg;
+        }
+      } catch (err) {
+        msgEl.style.color = '#f87171';
+        msgEl.textContent = 'Error de conexión. Intenta nuevamente.';
+      }
+    });
+
+    document.getElementById('formVerificarOtp').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msgEl = document.getElementById('loginMsgPaso2');
+      msgEl.style.display = 'block';
+      msgEl.style.color = '#4ecca3';
+      msgEl.textContent = '⏳ Validando código...';
+
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          accion: 'VERIFICAR_CODIGO_VITRINA',
+          idComercio: sesionVitrinaId,
+          codigo: document.getElementById('inputCodigoOtp').value
+        })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        sesionVitrinaToken = data.token;
+        const v = data.vitrina;
+        document.getElementById('editNombre').value = v.nombre || '';
+        document.getElementById('editWsp').value = v.whatsapp || '';
+        document.getElementById('editDireccion').value = v.direccion || '';
+        document.getElementById('editHorario').value = v.horario || '';
+        document.getElementById('editMaps').value = v.maps || '';
+        document.getElementById('editDescripcion').value = v.descripcion || '';
+        document.getElementById('editIg').value = v.instagram || '';
+        document.getElementById('editFb').value = v.facebook || '';
+        document.getElementById('editTk').value = v.tiktok || '';
+        document.getElementById('editWeb').value = v.sitioweb || '';
+
+        document.getElementById('contenedorSedesInputs').innerHTML = '';
+        (v.sedes || []).forEach(s => agregarFilaSedeUI(s.nombreSede, s.direccion, s.maps));
+
+        document.getElementById('stepVerificarOtp').style.display = 'none';
+        document.getElementById('stepEditarVitrina').style.display = 'block';
+      } else {
+        msgEl.style.color = '#f87171';
+        msgEl.textContent = '⚠️ ' + data.msg;
+      }
+    });
+
+    window.agregarFilaSedeUI = function(nombreSede = '', direccion = '', maps = '') {
+      const div = document.createElement('div');
+      div.className = 'fila-sede-item';
+      div.style.cssText = 'display:grid; grid-template-columns:1fr 1.2fr 1.2fr auto; gap:5px; align-items:center;';
+      div.innerHTML = `
+        <input type="text" class="modal-input sede-nombre" style="margin:0; padding:7px;" placeholder="Ej: Sede 2" value="${nombreSede}" />
+        <input type="text" class="modal-input sede-dir" style="margin:0; padding:7px;" placeholder="Dirección física" value="${direccion}" />
+        <input type="text" class="modal-input sede-maps" style="margin:0; padding:7px;" placeholder="Link Maps" value="${maps}" />
+        <button type="button" onclick="this.parentElement.remove()" style="background:#ef4444; color:#fff; border:none; border-radius:6px; padding:6px 8px; cursor:pointer;">✕</button>
+      `;
+      document.getElementById('contenedorSedesInputs').appendChild(div);
+    };
+
+    document.getElementById('editLogoFile').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.getElementById('canvasCropLogo');
+          const ctx = canvas.getContext('2d');
+          const minSide = Math.min(img.width, img.height);
+          ctx.clearRect(0, 0, 400, 400);
+          ctx.drawImage(img, (img.width - minSide) / 2, (img.height - minSide) / 2, minSide, minSide, 0, 0, 400, 400);
+          logoRecortadoBase64 = canvas.toDataURL('image/webp', 0.82);
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    document.getElementById('formGuardarVitrina').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const statusEl = document.getElementById('editStatusMsg');
+      statusEl.style.display = 'block';
+      statusEl.style.color = '#4ecca3';
+      statusEl.textContent = '⏳ Guardando cambios en tu Vitrina Digital...';
+
+      const sedesRecolectadas = [];
+      document.querySelectorAll('#contenedorSedesInputs .fila-sede-item').forEach(row => {
+        const n = row.querySelector('.sede-nombre').value.trim();
+        const d = row.querySelector('.sede-dir').value.trim();
+        const m = row.querySelector('.sede-maps').value.trim();
+        if (d) sedesRecolectadas.push({ nombreSede: n || 'Sede Alterna', direccion: d, maps: m });
+      });
+
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          accion: 'GUARDAR_MI_VITRINA',
+          idComercio: sesionVitrinaId,
+          token: sesionVitrinaToken,
+          nombre: document.getElementById('editNombre').value,
+          whatsapp: document.getElementById('editWsp').value,
+          direccion: document.getElementById('editDireccion').value,
+          horario: document.getElementById('editHorario').value,
+          maps: document.getElementById('editMaps').value,
+          descripcion: document.getElementById('editDescripcion').value,
+          instagram: document.getElementById('editIg').value,
+          facebook: document.getElementById('editFb').value,
+          tiktok: document.getElementById('editTk').value,
+          sitioweb: document.getElementById('editWeb').value,
+          sedes: sedesRecolectadas,
+          logoBase64: logoRecortadoBase64
+        })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        statusEl.textContent = '✅ ' + data.msg;
+        setTimeout(() => { cerrarModalVitrinaDigital(); fetchComercios(); }, 1500);
+      } else {
+        statusEl.style.color = '#f87171';
+        statusEl.textContent = '⚠️ ' + data.msg;
+      }
+    });
 
     fetchComercios();
   </script>
